@@ -35,7 +35,6 @@ INSTALL_REQUIRES = [
     "wget",
     "rospkg",
     "wandb",
-    "opencv-python==4.2.0.34",
 ]
 setup(
     name="wild_visual_navigation",
