@@ -144,10 +144,22 @@ class WvnFeatureExtractor:
             self._camera_scheduler.add_process(cam, self._ros_params.camera_topics[cam]["scheduler_weight"])
 
             # Camera info
-            t = self._ros_params.camera_topics[cam]["info_topic"]
-            rospy.loginfo(f"[{self._node_name}] Waiting for camera info topic {t}")
-            camera_info_msg = rospy.wait_for_message(self._ros_params.camera_topics[cam]["info_topic"], CameraInfo)
+            #t = self._ros_params.camera_topics[cam]["info_topic"]
+            #rospy.loginfo(f"[{self._node_name}] Waiting for camera info topic {t}")
+            #camera_info_msg = rospy.wait_for_message(self._ros_params.camera_topics[cam]["info_topic"], CameraInfo)
             rospy.loginfo(f"[{self._node_name}] Done")
+            camera_info_msg = CameraInfo()
+            K = np.array([[2.41394434e03, 0.00000000e00, 2.03381238e03],
+                                        [0.00000000e00, 2.41394434e03, 1.51682800e03],
+                                        [0.00000000e00, 0.00000000e00, 1.00000000e00],])
+            original_intrinsic_width = 4056
+            current_width = 812
+            ratio = float(current_width) / float(original_intrinsic_width)
+            K = ratio * K
+            K[2, 2] = 1.0
+            camera_info_msg.K.data = K.tolist()
+            camera_info_msg.height = 608
+            camera_info_msg.width = 812
             K, H, W = rc.ros_cam_info_to_tensors(camera_info_msg, device=self._ros_params.device)
 
             self._camera_handler[cam]["camera_info"] = camera_info_msg

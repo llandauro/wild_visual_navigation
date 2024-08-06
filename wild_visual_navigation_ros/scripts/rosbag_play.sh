@@ -38,31 +38,6 @@ for option in "$@"; do
     args="$args /tf:=/recorded/tf" 
     # /tf_static:=/recorded/tf_static"
     echo "rosrun anymal_rsl_launch replay.py c /media/Data/Datasets/2023_Oxford_Testing/2023_01_27_Oxford_Park/mission_data/2023-01-27-11-00-22/2023-01-27-11-00-22_anymal-coyote-lpc_mission.yaml"
-  elif [ "$option" == "--tm"]; then
-    args="$args "
-    #/husky_velocity_controller/odom:=
-    
-    """
-    /gps:=                                  2256 msgs    : sensor_msgs/NavSatFix                  
-             /husky_velocity_controller/cmd_vel   19567 msgs    : geometry_msgs/Twist                    
-             /husky_velocity_controller/odom       4246 msgs    : nav_msgs/Odometry                      
-             /joy_teleop/cmd_vel                  19568 msgs    : geometry_msgs/Twist                    
-             /joy_teleop/cmd_vel_raw              19559 msgs    : geometry_msgs/Twist                    
-             /microstrain/imu/data                45120 msgs    : sensor_msgs/Imu                        
-             /microstrain/nav/filtered_imu/data   45119 msgs    : sensor_msgs/Imu                        
-             /microstrain/nav/heading             45120 msgs    : microstrain_inertial_msgs/FilterHeading
-             /microstrain/nav/odom                45119 msgs    : nav_msgs/Odometry                      
-             /oak_front/color/image_raw            6772 msgs    : sensor_msgs/Image                      
-             /oak_front/depth/image_raw            6772 msgs    : sensor_msgs/Image                      
-             /oak_left/color/image_raw             6772 msgs    : sensor_msgs/Image                      
-             /oak_left/depth/image_raw             6772 msgs    : sensor_msgs/Image                      
-             /oak_right/color/image_raw            6772 msgs    : sensor_msgs/Image                      
-             /oak_right/depth/image_raw            6771 msgs    : sensor_msgs/Image                      
-             /status_pc                            1806 msgs    : mrl_husky_pc/HuskyPCStatus             
-             /tf  
-      """"  
-
-
   else
     args="$args $option"
   fi
