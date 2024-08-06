@@ -2,7 +2,7 @@ camera_topics:
   front:
     image_topic: "/oak_front/color/image_raw"
     info_topic: "/wide_angle_camera_front_resize/camera_info"
-    use_for_training: false
+    use_for_training: true
     publish_confidence: true
     publish_input_image: true
     scheduler_weight: 1

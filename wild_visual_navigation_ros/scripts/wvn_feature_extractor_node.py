@@ -107,6 +107,7 @@ class WvnFeatureExtractor:
         with read_write(self._ros_params):
             for k in self._ros_params.keys():
                 self._ros_params[k] = rospy.get_param(f"~{k}")
+                print(self._ros_params[k])
 
         with read_write(self._params):
             self._params.loss.confidence_std_factor = self._ros_params.confidence_std_factor
@@ -157,7 +158,7 @@ class WvnFeatureExtractor:
             ratio = float(current_width) / float(original_intrinsic_width)
             K = ratio * K
             K[2, 2] = 1.0
-            camera_info_msg.K.data = K.tolist()
+            camera_info_msg.K = K.tolist()
             camera_info_msg.height = 608
             camera_info_msg.width = 812
             K, H, W = rc.ros_cam_info_to_tensors(camera_info_msg, device=self._ros_params.device)
@@ -186,6 +187,7 @@ class WvnFeatureExtractor:
 
             # Set subscribers
             base_topic = self._ros_params.camera_topics[cam]["image_topic"].replace("/compressed", "")
+            print(base_topic)
             is_compressed = self._ros_params.camera_topics[cam]["image_topic"] != base_topic
             if is_compressed:
                 # TODO study the effect of the buffer size
@@ -291,6 +293,7 @@ class WvnFeatureExtractor:
             info_msg (sensor_msgs/CameraInfo): Camera info message associated to the image
             cam (str): Camera name
         """
+        rospy.logwarn("Received image")
         # Check the rate
         ts = image_msg.header.stamp.to_sec()
         if abs(ts - self._last_image_ts[cam]) < 1.0 / self._ros_params.image_callback_rate:
