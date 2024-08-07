@@ -15,12 +15,16 @@ from torchvision.models.feature_extraction import get_graph_node_names
 from torchvision.models.feature_extraction import create_feature_extractor
 
 MODEL_DIRECTORY = {
-    method_name: getattr(models, method_name) for method_name in dir(models) if callable(getattr(models, method_name))
+    method_name: getattr(models, method_name)
+    for method_name in dir(models)
+    if callable(getattr(models, method_name))
 }
 
 
 class TorchVisionInterface(nn.Module):
-    def __init__(self, device, model_type, input_size: int = 488, pretrained: bool = True):
+    def __init__(
+        self, device, model_type, input_size: int = 488, pretrained: bool = True
+    ):
         super().__init__()
 
         dino = False

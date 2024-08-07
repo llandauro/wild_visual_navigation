@@ -53,11 +53,15 @@ class TraversabilityEstimator:
         self._anomaly_detection = anomaly_detection
 
         # Local graphs
-        self._supervision_graph = DistanceWindowGraph(max_distance=max_distance, edge_distance=supervision_distance_thr)
+        self._supervision_graph = DistanceWindowGraph(
+            max_distance=max_distance, edge_distance=supervision_distance_thr
+        )
 
         # Experience graph
         if mode == WVNMode.EXTRACT_LABELS:
-            self._mission_graph = MaxElementsGraph(edge_distance=image_distance_thr, max_elements=200)
+            self._mission_graph = MaxElementsGraph(
+                edge_distance=image_distance_thr, max_elements=200
+            )
         else:
             self._mission_graph = BaseGraph(edge_distance=image_distance_thr)
 
@@ -97,7 +101,9 @@ class TraversabilityEstimator:
             )
             self._traversability_loss.to(self._device)
 
-        self._optimizer = torch.optim.Adam(self._model.parameters(), lr=self._params["optimizer"]["lr"])
+        self._optimizer = torch.optim.Adam(
+            self._model.parameters(), lr=self._params["optimizer"]["lr"]
+        )
         self._loss = torch.tensor([torch.inf])
         self._step = 0
         self._debug_info_node_count = 0
@@ -160,7 +166,9 @@ class TraversabilityEstimator:
             if self._mode == WVNMode.ONLINE and self._vis_mission_node is not None:
                 self._vis_mission_node.clear_debug_data()
 
-            self._vis_mission_node = self._mission_graph.get_nodes()[-self._vis_node_index]
+            self._vis_mission_node = self._mission_graph.get_nodes()[
+                -self._vis_node_index
+            ]
 
     @accumulate_time
     def add_mission_node(self, node: MissionNode, verbose: bool = False):
@@ -217,7 +225,9 @@ class TraversabilityEstimator:
         if not success:
             # Update traversability of latest node
             if last_pnode is not None:
-                last_pnode.update_traversability(pnode.traversability, pnode.traversability_var)
+                last_pnode.update_traversability(
+                    pnode.traversability, pnode.traversability_var
+                )
             return False
 
         else:
@@ -233,11 +243,15 @@ class TraversabilityEstimator:
             last_mission_node = self._mission_graph.get_last_node()
             if last_mission_node is None:
                 return False
-            if (not hasattr(last_mission_node, "supervision_mask")) or (last_mission_node.supervision_mask is None):
+            if (not hasattr(last_mission_node, "supervision_mask")) or (
+                last_mission_node.supervision_mask is None
+            ):
                 return False
 
             for j, ele in enumerate(
-                list(self._mission_graph._graph.nodes._nodes.items())[self._debug_info_node_count :]
+                list(self._mission_graph._graph.nodes._nodes.items())[
+                    self._debug_info_node_count :
+                ]
             ):
                 node, values = ele
                 if last_mission_node.timestamp - values["timestamp"] > 30:
@@ -261,9 +275,9 @@ class TraversabilityEstimator:
             B = len(mission_nodes)
             # Prepare batches
             K = torch.eye(4, device=self._device).repeat(B, 1, 1)
-            supervision_masks = torch.zeros(last_mission_node.supervision_mask.shape, device=self._device).repeat(
-                B, 1, 1, 1
-            )
+            supervision_masks = torch.zeros(
+                last_mission_node.supervision_mask.shape, device=self._device
+            ).repeat(B, 1, 1, 1)
             pose_camera_in_world = torch.eye(4, device=self._device).repeat(B, 1, 1)
             H = last_mission_node.image_projector.camera.height
             W = last_mission_node.image_projector.camera.width
@@ -273,11 +287,16 @@ class TraversabilityEstimator:
                 K[i] = mnode.image_projector.camera.intrinsics
                 pose_camera_in_world[i] = mnode.pose_cam_in_world
 
-                if not ((not hasattr(mnode, "supervision_mask")) or (mnode.supervision_mask is None)):
+                if not (
+                    (not hasattr(mnode, "supervision_mask"))
+                    or (mnode.supervision_mask is None)
+                ):
                     supervision_masks[i] = mnode.supervision_mask
 
             im = ImageProjector(K, H, W)
-            mask, _, _, _ = im.project_and_render(pose_camera_in_world, footprints, color)
+            mask, _, _, _ = im.project_and_render(
+                pose_camera_in_world, footprints, color
+            )
 
             # Update traversability
             mask = mask * pnode.traversability
@@ -294,7 +313,9 @@ class TraversabilityEstimator:
                         "supervision_mask",
                         str(mnode.timestamp).replace(".", "_") + ".pt",
                     )
-                    store = torch.nan_to_num(mnode.supervision_mask.nanmean(axis=0)) != 0
+                    store = (
+                        torch.nan_to_num(mnode.supervision_mask.nanmean(axis=0)) != 0
+                    )
                     torch.save(store, p)
 
             return True
@@ -374,7 +395,9 @@ class TraversabilityEstimator:
                 i += 1
         self._pause_training = False
 
-    def save_checkpoint(self, mission_path: str, checkpoint_name: str = "last_checkpoint.pt"):
+    def save_checkpoint(
+        self, mission_path: str, checkpoint_name: str = "last_checkpoint.pt"
+    ):
         """Saves the torch checkpoint and optimization state
 
         Args:
@@ -417,7 +440,9 @@ class TraversabilityEstimator:
             checkpoint = torch.load(checkpoint_path)
             self._model.load_state_dict(checkpoint["model_state_dict"])
             self._optimizer.load_state_dict(checkpoint["optimizer_state_dict"])
-            self._traversability_loss.load_state_dict(checkpoint["traversability_loss_state_dict"])
+            self._traversability_loss.load_state_dict(
+                checkpoint["traversability_loss_state_dict"]
+            )
             self._step = checkpoint["step"]
             self._loss = checkpoint["loss"]
 
@@ -441,7 +466,12 @@ class TraversabilityEstimator:
 
         # Just sample N random nodes
         mission_nodes = self._mission_graph.get_n_random_valid_nodes(n=batch_size)
-        batch = Batch.from_data_list([x.as_pyg_data(anomaly_detection=self._anomaly_detection) for x in mission_nodes])
+        batch = Batch.from_data_list(
+            [
+                x.as_pyg_data(anomaly_detection=self._anomaly_detection)
+                for x in mission_nodes
+            ]
+        )
 
         return batch
 

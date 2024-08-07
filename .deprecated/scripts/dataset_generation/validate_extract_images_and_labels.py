@@ -10,7 +10,9 @@ import subprocess
 def get_bag_info(rosbag_path: str) -> dict:
     # This queries rosbag info using subprocess and get the YAML output to parse the topics
     info_dict = yaml.safe_load(
-        subprocess.Popen(["rosbag", "info", "--yaml", rosbag_path], stdout=subprocess.PIPE).communicate()[0]
+        subprocess.Popen(
+            ["rosbag", "info", "--yaml", rosbag_path], stdout=subprocess.PIPE
+        ).communicate()[0]
     )
     return info_dict
 
@@ -21,11 +23,16 @@ failed = []
 
 for d in perguia_dataset:
     img_key = [
-        str(s).split("/")[-1] for s in Path(ouput_dir, d["name"].replace("mission_data/", ""), "image").rglob("*.pt")
+        str(s).split("/")[-1]
+        for s in Path(ouput_dir, d["name"].replace("mission_data/", ""), "image").rglob(
+            "*.pt"
+        )
     ]
     supervision_mask_key = [
         str(s).split("/")[-1]
-        for s in Path(ouput_dir, d["name"].replace("mission_data/", ""), "supervision_mask").rglob("*.pt")
+        for s in Path(
+            ouput_dir, d["name"].replace("mission_data/", ""), "supervision_mask"
+        ).rglob("*.pt")
     ]
     ls = img_key + supervision_mask_key
     ls.sort()
@@ -43,7 +50,11 @@ for d in perguia_dataset:
     print("   Not valid:", (~valid).sum())
     delete_keys = all_keys[~valid].tolist()
     for dele in delete_keys:
-        p = str(os.path.join(ouput_dir, d["name"].replace("mission_data/", ""), "image", dele))
+        p = str(
+            os.path.join(
+                ouput_dir, d["name"].replace("mission_data/", ""), "image", dele
+            )
+        )
         if os.path.exists(p):
             os.remove(p)
         p = str(
@@ -60,7 +71,9 @@ for d in perguia_dataset:
     res = get_bag_info(os.path.join(ROOT_DIR, d["name"] + "_wvn.bag"))
 
     if len(keys) != 0:
-        time_to_early = (res["start"] + d["stop"]) - float(keys[-1][:-3].replace("_", "."))
+        time_to_early = (res["start"] + d["stop"]) - float(
+            keys[-1][:-3].replace("_", ".")
+        )
         print(f"   Stopped to early by: {time_to_early}s")
     else:
         time_to_early = 99999999999

@@ -20,7 +20,9 @@ def objective(trial, params: ExperimentParams):
         exp.loss.w_trav = trial.suggest_float("w_trav", 0.0, 1.0)
         exp.loss.w_temp = trial.suggest_float("w_temp", 0.0, 1.0)
         exp.loss.w_reco = trial.suggest_float("w_reco", 0.0, 1.0)
-        exp.loss.anomaly_balanced = trial.suggest_categorical("anomaly_balanced", [True])
+        exp.loss.anomaly_balanced = trial.suggest_categorical(
+            "anomaly_balanced", [True]
+        )
 
     res, _ = training_routine(exp)
 
@@ -31,7 +33,9 @@ def objective(trial, params: ExperimentParams):
 if __name__ == "__main__":
     parser = ArgumentParser()
 
-    parser.add_argument("--name", type=str, default="sweep_loss_function", help="Name of sweep")
+    parser.add_argument(
+        "--name", type=str, default="sweep_loss_function", help="Name of sweep"
+    )
     parser.add_argument("--n_trials", type=int, default=100, help="Number Trials")
 
     args = parser.parse_args()
@@ -70,6 +74,8 @@ if __name__ == "__main__":
 
     binded_objective = lambda trial: objective(trial=trial, experiment=args.experiment)
     study = optuna.create_study(direction=optuna.study.StudyDirection.MAXIMIZE)
-    study.optimize(binded_objective, n_trials=args.n_trials, callbacks=[neptune_callback])
+    study.optimize(
+        binded_objective, n_trials=args.n_trials, callbacks=[neptune_callback]
+    )
 
     trial = study.best_trial

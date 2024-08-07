@@ -30,7 +30,9 @@ class GraphTravAblationDataset(Dataset):
         j = 0
         self.perugia_root = perugia_root
         self.minimal = minimal
-        with open(os.path.join(perugia_root, "wvn_output/split", f"{env}_{mode}.txt"), "r") as f:
+        with open(
+            os.path.join(perugia_root, "wvn_output/split", f"{env}_{mode}.txt"), "r"
+        ) as f:
             while True:
                 line = f.readline()
                 j += 1
@@ -55,7 +57,9 @@ class GraphTravAblationDataset(Dataset):
         self.env = env
         self.paths = ls
         self.feature_key = feature_key
-        self.crop = T.Compose([T.Resize(448, T.InterpolationMode.NEAREST), T.CenterCrop(448)])
+        self.crop = T.Compose(
+            [T.Resize(448, T.InterpolationMode.NEAREST), T.CenterCrop(448)]
+        )
 
     def len(self) -> int:
         return len(self.paths)
@@ -80,7 +84,9 @@ class GraphTravAblationDataset(Dataset):
 
         if self.mode == "test":
             key = (self.paths[idx]).split("/")[-1][:-3]
-            store = os.path.join(self.perugia_root, f"wvn_output/labeling/{self.env}/labels/{key}.pt")
+            store = os.path.join(
+                self.perugia_root, f"wvn_output/labeling/{self.env}/labels/{key}.pt"
+            )
             label = torch.load(store)
             y_gt = []
             for i in torch.unique(seg):
@@ -143,7 +149,9 @@ def get_ablation_module(
     get_test_dataset: bool = True,
     **kwargs,
 ) -> LightningDataset:
-    def get_test_dataset(perugia_root, env, feature_key, test_all_datasets, training_data_percentage):
+    def get_test_dataset(
+        perugia_root, env, feature_key, test_all_datasets, training_data_percentage
+    ):
         if test_all_datasets:
             scenes = ["forest", "grassland", "hilly"]
         else:

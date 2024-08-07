@@ -36,7 +36,9 @@ from anymal_msg_converter_node import anymal_msg_callback
 def get_bag_info(rosbag_path: str) -> dict:
     # This queries rosbag info using subprocess and get the YAML output to parse the topics
     info_dict = yaml.safe_load(
-        subprocess.Popen(["rosbag", "info", "--yaml", rosbag_path], stdout=subprocess.PIPE).communicate()[0]
+        subprocess.Popen(
+            ["rosbag", "info", "--yaml", rosbag_path], stdout=subprocess.PIPE
+        ).communicate()[0]
     )
     return info_dict
 
@@ -110,14 +112,18 @@ def do(n, dry_run):
 
     # 2022-05-12T11:56:13_mission_0_day_3
     # extraction_store_folder = f"/media/Data/Datasets/2022_Perugia/wvn_output/day3/{mission}"
-    extraction_store_folder = f"/media/matias/datasets/2022_Perugia/wvn_output/day3/{mission}"
+    extraction_store_folder = (
+        f"/media/matias/datasets/2022_Perugia/wvn_output/day3/{mission}"
+    )
 
     if os.path.exists(extraction_store_folder):
         print(f"Stopped because folder already exists: {extraction_store_folder}")
         return
 
     rosparam.set_param("wild_visual_navigation_node/mode", "extract_labels")
-    rosparam.set_param("wild_visual_navigation_node/extraction_store_folder", extraction_store_folder)
+    rosparam.set_param(
+        "wild_visual_navigation_node/extraction_store_folder", extraction_store_folder
+    )
 
     # for supervision callback
     state_msg_valid = False
@@ -164,7 +170,13 @@ def do(n, dry_run):
     info_msg.R = [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0]
 
     rosbag_info_dict = get_bag_info(output_bag_wvn)
-    total_msgs = sum([x["messages"] for x in rosbag_info_dict["topics"] if x["topic"] in valid_topics])
+    total_msgs = sum(
+        [
+            x["messages"]
+            for x in rosbag_info_dict["topics"]
+            if x["topic"] in valid_topics
+        ]
+    )
     total_time_img = 0
     total_time_state = 0
     n = 0
@@ -179,7 +191,9 @@ def do(n, dry_run):
             position=1,
             bar_format="{desc:<13}{percentage:3.0f}%|{bar:20}{r_bar}",
         ) as pbar:
-            for topic, msg, ts in bag.read_messages(topics=None, start_time=start_time, end_time=end_time):
+            for topic, msg, ts in bag.read_messages(
+                topics=None, start_time=start_time, end_time=end_time
+            ):
                 pbar.update(1)
                 st = time.time()
                 if topic == "/state_estimator/anymal_state":
@@ -209,7 +223,9 @@ def do(n, dry_run):
                             if msg.header.stamp == image_msg.header.stamp:
                                 break
                         if i >= N - 1:
-                            raise Exception("Timeout waiting for debayered image message")
+                            raise Exception(
+                                "Timeout waiting for debayered image message"
+                            )
 
                     info_msg.header = msg.header
                     try:
@@ -222,7 +238,9 @@ def do(n, dry_run):
                     tqdm.write("add image")
                 if state_msg_valid and desired_twist_msg_valid:
                     try:
-                        wvn_ros_interface.robot_state_callback(state_msg, desired_twist_msg)
+                        wvn_ros_interface.robot_state_callback(
+                            state_msg, desired_twist_msg
+                        )
                     except Exception as e:
                         tqdm.write("Bad robot_state callback ", e)
 

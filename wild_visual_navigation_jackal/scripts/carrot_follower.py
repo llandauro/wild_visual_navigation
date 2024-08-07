@@ -38,7 +38,14 @@ def msg_to_se2(pose):
     x = pose.position.x
     y = pose.position.y
     eul = tr.euler_from_quaternion(
-        np.array([pose.orientation.x, pose.orientation.y, pose.orientation.z, pose.orientation.w])
+        np.array(
+            [
+                pose.orientation.x,
+                pose.orientation.y,
+                pose.orientation.z,
+                pose.orientation.w,
+            ]
+        )
     )
     yaw = eul[2]
     return x, y, yaw
@@ -69,8 +76,12 @@ def compute_cmd(goal_x, goal_y, robot_x, robot_y, robot_yaw):
 
     twist_cmd = Twist()
     if dist_diff > DIST_THR:
-        twist_cmd.angular.z = np.clip(GAIN_ANGULAR * yaw_diff, -MAX_ANGULAR_VEL, MAX_ANGULAR_VEL)
-        twist_cmd.linear.x = np.clip(GAIN_LINEAR * dist_diff, -MAX_LINEAR_VEL, MAX_LINEAR_VEL)
+        twist_cmd.angular.z = np.clip(
+            GAIN_ANGULAR * yaw_diff, -MAX_ANGULAR_VEL, MAX_ANGULAR_VEL
+        )
+        twist_cmd.linear.x = np.clip(
+            GAIN_LINEAR * dist_diff, -MAX_LINEAR_VEL, MAX_LINEAR_VEL
+        )
     else:
         twist_cmd.angular.z = 0.0
         twist_cmd.linear.x = 0.0
@@ -81,8 +92,12 @@ def compute_cmd(goal_x, goal_y, robot_x, robot_y, robot_yaw):
 
 if __name__ == "__main__":
     rospy.init_node("jackal_carrot_follower")
-    gazebo_sub = rospy.Subscriber("/gazebo/link_states/", LinkStates, gazebo_callback, queue_size=5)
-    goal_sub = rospy.Subscriber("/move_base_simple/goal", PoseStamped, goal_callback, queue_size=5)
+    gazebo_sub = rospy.Subscriber(
+        "/gazebo/link_states/", LinkStates, gazebo_callback, queue_size=5
+    )
+    goal_sub = rospy.Subscriber(
+        "/move_base_simple/goal", PoseStamped, goal_callback, queue_size=5
+    )
 
     cmd_pub = rospy.Publisher("/cmd_vel", Twist, queue_size=5)
     rospy.loginfo("[jackal_carrot_follower] ready")

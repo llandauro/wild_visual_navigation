@@ -46,7 +46,9 @@ def training_routine(exp: ExperimentParams, seed=42) -> torch.Tensor:
 
         # Profiler
         if exp.trainer.get("profiler", False) == "advanced":
-            exp.trainer.profiler = AdvancedProfiler(dirpath=model_path, filename="profile.txt")
+            exp.trainer.profiler = AdvancedProfiler(
+                dirpath=model_path, filename="profile.txt"
+            )
 
     # Callbacks
     cb_ls = []

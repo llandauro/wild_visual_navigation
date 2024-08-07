@@ -48,7 +48,9 @@ def get_neptune_logger(exp: dict) -> NeptuneLogger:
     Returns:
         (logger): Logger
     """
-    project_name = exp.logger.neptune_project_name  # Neptune AI project_name "username/project"
+    project_name = (
+        exp.logger.neptune_project_name
+    )  # Neptune AI project_name "username/project"
 
     params = flatten_dict(exp)  # noqa: F841
 
@@ -82,7 +84,9 @@ def get_wandb_logger(exp: dict) -> WandbLogger:
         (logger): Logger
     """
     project_name = exp.logger.wandb_project_name  # project_name (str): W&B project_name
-    save_dir = os.path.join(exp.general.model_path)  # save_dir (str): File path to save directory
+    save_dir = os.path.join(
+        exp.general.model_path
+    )  # save_dir (str): File path to save directory
     params = flatten_dict(exp)  # noqa: F841
     name_full = exp.general.name
     name_short = "__".join(name_full.split("/")[-2:])
@@ -105,7 +109,9 @@ def get_tensorboard_logger(exp: dict) -> TensorBoardLogger:
         (logger): Logger
     """
     params = flatten_dict(exp)
-    return TensorBoardLogger(save_dir=exp.name, name="tensorboard", default_hp_metric=params)
+    return TensorBoardLogger(
+        save_dir=exp.name, name="tensorboard", default_hp_metric=params
+    )
 
 
 def get_skip_logger(exp: dict) -> None:

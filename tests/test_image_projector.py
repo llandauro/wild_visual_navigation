@@ -9,7 +9,10 @@ def test_image_projector():
 def test_supervision_projection():
     from wild_visual_navigation.image_projector import ImageProjector
     from wild_visual_navigation.visu import get_img_from_fig
-    from wild_visual_navigation.utils.testing import load_test_image, make_results_folder
+    from wild_visual_navigation.utils.testing import (
+        load_test_image,
+        make_results_folder,
+    )
     from liegroups.torch import SE3, SO3
     import matplotlib.pyplot as plt
     import torch
@@ -27,7 +30,9 @@ def test_supervision_projection():
     # Prepare single pinhole model
     # Camera is created 1.5m backward, and 1m upwards, 0deg towards the origin
     # Intrinsics
-    K = torch.FloatTensor([[720, 0, 720, 0], [0, 720, 540, 0], [0, 0, 1, 0], [0, 0, 0, 1]])[None]
+    K = torch.FloatTensor(
+        [[720, 0, 720, 0], [0, 720, 540, 0], [0, 0, 1, 0], [0, 0, 0, 1]]
+    )[None]
 
     # Extrisics
     pose_camera_in_world = torch.eye(4)[None]
@@ -49,14 +54,20 @@ def test_supervision_projection():
     # phi = torch.FloatTensor([-2 * torch.pi / 4, 0.0, -torch.pi / 2])  # roll-pitch-yaw
     phi = torch.FloatTensor([-3 * torch.pi / 4, 0.0, -torch.pi / 2])  # roll-pitch-yaw
     R_WC = SO3.from_rpy(phi)  # Rotation matrix from roll-pitch-yaw
-    pose_camera_in_world = SE3(R_WC, rho).as_matrix()[None]  # Pose matrix of camera in world frame
+    pose_camera_in_world = SE3(R_WC, rho).as_matrix()[
+        None
+    ]  # Pose matrix of camera in world frame
 
     # Fill data
     pose_base_in_world = torch.eye(4)[None]
     nodes = []
     for i in range(B):
-        rho = torch.FloatTensor([1 / 10.0 + random.random() / 10.0, 0, 0])  # Translation vector (x, y, z)
-        phi = torch.FloatTensor([0.0, 0.0, (random.random() - 0.5) / 2])  # roll-pitch-yaw
+        rho = torch.FloatTensor(
+            [1 / 10.0 + random.random() / 10.0, 0, 0]
+        )  # Translation vector (x, y, z)
+        phi = torch.FloatTensor(
+            [0.0, 0.0, (random.random() - 0.5) / 2]
+        )  # roll-pitch-yaw
         R_WC = SO3.from_rpy(phi)  # Rotation matrix from roll-pitch-yaw
         delta = SE3(R_WC, rho).as_matrix()[None]  # Pose matrix of camera in world frame
         pose_base_in_world = pose_base_in_world @ delta

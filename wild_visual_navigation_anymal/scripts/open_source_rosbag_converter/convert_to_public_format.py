@@ -127,7 +127,11 @@ if __name__ == "__main__":
         "~anymal_state_topic",
     )
     output_topic = rospy.get_param("~output_topic")
-    joint_state_publisher = rospy.Publisher(joint_states_topic, JointState, queue_size=10)
+    joint_state_publisher = rospy.Publisher(
+        joint_states_topic, JointState, queue_size=10
+    )
     robot_state_pub = rospy.Publisher(output_topic, RobotState, queue_size=10)
-    rospy.Subscriber(anymal_state_topic, AnymalState, anymal_state_callback, queue_size=1)
+    rospy.Subscriber(
+        anymal_state_topic, AnymalState, anymal_state_callback, queue_size=1
+    )
     rospy.spin()

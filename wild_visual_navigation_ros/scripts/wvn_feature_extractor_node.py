@@ -59,21 +59,31 @@ class WvnFeatureExtractor:
 
         # Load model
         # We manually update the input size to the models depending on the chosen features
-        self._params.model.simple_mlp_cfg.input_size = self._feature_extractor.feature_dim
-        self._params.model.double_mlp_cfg.input_size = self._feature_extractor.feature_dim
-        self._params.model.simple_gcn_cfg.input_size = self._feature_extractor.feature_dim
-        self._params.model.linear_rnvp_cfg.input_size = self._feature_extractor.feature_dim
+        self._params.model.simple_mlp_cfg.input_size = (
+            self._feature_extractor.feature_dim
+        )
+        self._params.model.double_mlp_cfg.input_size = (
+            self._feature_extractor.feature_dim
+        )
+        self._params.model.simple_gcn_cfg.input_size = (
+            self._feature_extractor.feature_dim
+        )
+        self._params.model.linear_rnvp_cfg.input_size = (
+            self._feature_extractor.feature_dim
+        )
         self._model = get_model(self._params.model).to(self._ros_params.device)
         self._model.eval()
 
         if self.anomaly_detection:
             self._confidence_generator = ConfidenceGenerator(
-                method=self._params.loss_anomaly.method, std_factor=self._params.loss_anomaly.confidence_std_factor
+                method=self._params.loss_anomaly.method,
+                std_factor=self._params.loss_anomaly.confidence_std_factor,
             )
 
         else:
             self._confidence_generator = ConfidenceGenerator(
-                method=self._params.loss.method, std_factor=self._params.loss.confidence_std_factor
+                method=self._params.loss.method,
+                std_factor=self._params.loss.confidence_std_factor,
             )
         self._log_data = {}
         self.setup_ros()
@@ -95,7 +105,9 @@ class WvnFeatureExtractor:
         self._status_thread_stop_event.set()
         self._status_thread.join()
 
-        rospy.signal_shutdown(f"Wild Visual Navigation Feature Extraction killed {args}")
+        rospy.signal_shutdown(
+            f"Wild Visual Navigation Feature Extraction killed {args}"
+        )
         sys.exit(0)
 
     def read_params(self):
@@ -110,8 +122,12 @@ class WvnFeatureExtractor:
                 print(self._ros_params[k])
 
         with read_write(self._params):
-            self._params.loss.confidence_std_factor = self._ros_params.confidence_std_factor
-            self._params.loss_anomaly.confidence_std_factor = self._ros_params.confidence_std_factor
+            self._params.loss.confidence_std_factor = (
+                self._ros_params.confidence_std_factor
+            )
+            self._params.loss_anomaly.confidence_std_factor = (
+                self._ros_params.confidence_std_factor
+            )
 
         self.anomaly_detection = self._params.model.name == "LinearRnvp"
 
@@ -142,17 +158,23 @@ class WvnFeatureExtractor:
             self._ros_params.camera_topics[cam]["name"] = cam
 
             # Add to scheduler
-            self._camera_scheduler.add_process(cam, self._ros_params.camera_topics[cam]["scheduler_weight"])
+            self._camera_scheduler.add_process(
+                cam, self._ros_params.camera_topics[cam]["scheduler_weight"]
+            )
 
             # Camera info
-            #t = self._ros_params.camera_topics[cam]["info_topic"]
-            #rospy.loginfo(f"[{self._node_name}] Waiting for camera info topic {t}")
-            #camera_info_msg = rospy.wait_for_message(self._ros_params.camera_topics[cam]["info_topic"], CameraInfo)
+            # t = self._ros_params.camera_topics[cam]["info_topic"]
+            # rospy.loginfo(f"[{self._node_name}] Waiting for camera info topic {t}")
+            # camera_info_msg = rospy.wait_for_message(self._ros_params.camera_topics[cam]["info_topic"], CameraInfo)
             rospy.loginfo(f"[{self._node_name}] Done")
             camera_info_msg = CameraInfo()
-            K = np.array([[2.41394434e03, 0.00000000e00, 2.03381238e03],
-                                        [0.00000000e00, 2.41394434e03, 1.51682800e03],
-                                        [0.00000000e00, 0.00000000e00, 1.00000000e00],])
+            K = np.array(
+                [
+                    [2.41394434e03, 0.00000000e00, 2.03381238e03],
+                    [0.00000000e00, 2.41394434e03, 1.51682800e03],
+                    [0.00000000e00, 0.00000000e00, 1.00000000e00],
+                ]
+            )
             original_intrinsic_width = 4056
             current_width = 812
             ratio = float(current_width) / float(original_intrinsic_width)
@@ -161,7 +183,9 @@ class WvnFeatureExtractor:
             camera_info_msg.K = K.tolist()
             camera_info_msg.height = 608
             camera_info_msg.width = 812
-            K, H, W = rc.ros_cam_info_to_tensors(camera_info_msg, device=self._ros_params.device)
+            K, H, W = rc.ros_cam_info_to_tensors(
+                camera_info_msg, device=self._ros_params.device
+            )
 
             self._camera_handler[cam]["camera_info"] = camera_info_msg
             self._camera_handler[cam]["K"] = K
@@ -178,17 +202,33 @@ class WvnFeatureExtractor:
             msg = self._camera_handler[cam]["camera_info"]
             msg.width = self._ros_params.network_input_image_width
             msg.height = self._ros_params.network_input_image_height
-            msg.K = image_projector.scaled_camera_matrix[0, :3, :3].cpu().numpy().flatten().tolist()
-            msg.P = image_projector.scaled_camera_matrix[0, :3, :4].cpu().numpy().flatten().tolist()
+            msg.K = (
+                image_projector.scaled_camera_matrix[0, :3, :3]
+                .cpu()
+                .numpy()
+                .flatten()
+                .tolist()
+            )
+            msg.P = (
+                image_projector.scaled_camera_matrix[0, :3, :4]
+                .cpu()
+                .numpy()
+                .flatten()
+                .tolist()
+            )
 
             with read_write(self._ros_params):
                 self._camera_handler[cam]["camera_info_msg_out"] = msg
                 self._camera_handler[cam]["image_projector"] = image_projector
 
             # Set subscribers
-            base_topic = self._ros_params.camera_topics[cam]["image_topic"].replace("/compressed", "")
+            base_topic = self._ros_params.camera_topics[cam]["image_topic"].replace(
+                "/compressed", ""
+            )
             print(base_topic)
-            is_compressed = self._ros_params.camera_topics[cam]["image_topic"] != base_topic
+            is_compressed = (
+                self._ros_params.camera_topics[cam]["image_topic"] != base_topic
+            )
             if is_compressed:
                 # TODO study the effect of the buffer size
                 image_sub = rospy.Subscriber(
@@ -221,8 +261,13 @@ class WvnFeatureExtractor:
             )
             self._camera_handler[cam]["trav_pub"] = trav_pub
             self._camera_handler[cam]["info_pub"] = info_pub
-            if self.anomaly_detection and self._ros_params.camera_topics[cam]["publish_confidence"]:
-                rospy.logwarn(f"[{self._node_name}] Warning force set public confidence to false")
+            if (
+                self.anomaly_detection
+                and self._ros_params.camera_topics[cam]["publish_confidence"]
+            ):
+                rospy.logwarn(
+                    f"[{self._node_name}] Warning force set public confidence to false"
+                )
                 self._ros_params.camera_topics[cam]["publish_confidence"] = False
 
             if self._ros_params.camera_topics[cam]["publish_input_image"]:
@@ -296,7 +341,10 @@ class WvnFeatureExtractor:
         rospy.logwarn("Received image")
         # Check the rate
         ts = image_msg.header.stamp.to_sec()
-        if abs(ts - self._last_image_ts[cam]) < 1.0 / self._ros_params.image_callback_rate:
+        if (
+            abs(ts - self._last_image_ts[cam])
+            < 1.0 / self._ros_params.image_callback_rate
+        ):
             return
 
         # Check the scheduler
@@ -319,8 +367,12 @@ class WvnFeatureExtractor:
             self.load_model(image_msg.header.stamp)
 
             # Convert image message to torch image
-            torch_image = rc.ros_image_to_torch(image_msg, device=self._ros_params.device)
-            torch_image = self._camera_handler[cam]["image_projector"].resize_image(torch_image)
+            torch_image = rc.ros_image_to_torch(
+                image_msg, device=self._ros_params.device
+            )
+            torch_image = self._camera_handler[cam]["image_projector"].resize_image(
+                torch_image
+            )
             C, H, W = torch_image.shape
 
             # Extract features
@@ -334,7 +386,9 @@ class WvnFeatureExtractor:
             # Forward pass to predict traversability
             if self._ros_params.prediction_per_pixel:
                 # Pixel-wise traversability prediction using the dense features
-                data = Data(x=dense_feat[0].permute(1, 2, 0).reshape(-1, dense_feat.shape[1]))
+                data = Data(
+                    x=dense_feat[0].permute(1, 2, 0).reshape(-1, dense_feat.shape[1])
+                )
             else:
                 # input_feat = dense_feat[0].permute(1, 2, 0).reshape(-1, dense_feat.shape[1])
                 # Segment-wise traversability prediction using the average feature per segment
@@ -348,7 +402,9 @@ class WvnFeatureExtractor:
                 out_trav = prediction.reshape(H, W, -1)[:, :, 0]
             else:
                 losses = prediction["logprob"].sum(1) + prediction["log_det"]
-                confidence = self._confidence_generator.inference_without_update(x=-losses)
+                confidence = self._confidence_generator.inference_without_update(
+                    x=-losses
+                )
                 trav = confidence
                 out_trav = trav.reshape(H, W, -1)[:, :, 0]
 
@@ -375,8 +431,12 @@ class WvnFeatureExtractor:
 
             # Publish confidence
             if self._ros_params.camera_topics[cam]["publish_confidence"]:
-                loss_reco = F.mse_loss(prediction[:, 1:], data.x, reduction="none").mean(dim=1)
-                confidence = self._confidence_generator.inference_without_update(x=loss_reco)
+                loss_reco = F.mse_loss(
+                    prediction[:, 1:], data.x, reduction="none"
+                ).mean(dim=1)
+                confidence = self._confidence_generator.inference_without_update(
+                    x=loss_reco
+                )
                 out_confidence = confidence.reshape(H, W)
                 msg = rc.numpy_to_ros_image(out_confidence.cpu().numpy(), "passthrough")
                 msg.header = image_msg.header
@@ -388,7 +448,9 @@ class WvnFeatureExtractor:
             if self._ros_params.camera_topics[cam]["use_for_training"]:
                 msg = ImageFeatures()
                 msg.header = image_msg.header
-                msg.feature_segments = rc.numpy_to_ros_image(seg.cpu().numpy().astype(np.int32), "passthrough")
+                msg.feature_segments = rc.numpy_to_ros_image(
+                    seg.cpu().numpy().astype(np.int32), "passthrough"
+                )
                 msg.feature_segments.header = image_msg.header
                 feat_np = feat.cpu().numpy()
 
@@ -426,7 +488,10 @@ class WvnFeatureExtractor:
             None
         """
         ts = stamp.to_sec()
-        if abs(ts - self._last_checkpoint_ts) < 1.0 / self._ros_params.load_save_checkpoint_rate:
+        if (
+            abs(ts - self._last_checkpoint_ts)
+            < 1.0 / self._ros_params.load_save_checkpoint_rate
+        ):
             return
 
         self._last_checkpoint_ts = ts
@@ -458,7 +523,9 @@ class WvnFeatureExtractor:
 
                     if self._ros_params.verbose:
                         m, s, v = cg["mean"].item(), cg["std"].item(), cg["var"].item()
-                        rospy.loginfo(f"[{self._node_name}] Loaded Confidence Generator {m}, std {s} var {v}")
+                        rospy.loginfo(
+                            f"[{self._node_name}] Loaded Confidence Generator {m}, std {s} var {v}"
+                        )
 
         else:
             if self._ros_params.verbose:

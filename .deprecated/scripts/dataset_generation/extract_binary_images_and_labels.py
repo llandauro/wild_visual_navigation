@@ -35,7 +35,9 @@ from anymal_msg_converter_node import anymal_msg_callback
 def get_bag_info(rosbag_path: str) -> dict:
     # This queries rosbag info using subprocess and get the YAML output to parse the topics
     info_dict = yaml.safe_load(
-        subprocess.Popen(["rosbag", "info", "--yaml", rosbag_path], stdout=subprocess.PIPE).communicate()[0]
+        subprocess.Popen(
+            ["rosbag", "info", "--yaml", rosbag_path], stdout=subprocess.PIPE
+        ).communicate()[0]
     )
     return info_dict
 
@@ -101,7 +103,9 @@ def do(n, dry_run):
         # return
 
     rosparam.set_param("wild_visual_navigation_node/mode", "extract_labels")
-    rosparam.set_param("wild_visual_navigation_node/running_store_folder", running_store_folder)
+    rosparam.set_param(
+        "wild_visual_navigation_node/running_store_folder", running_store_folder
+    )
 
     # for supervision callback
     state_msg_valid = False
@@ -154,7 +158,13 @@ def do(n, dry_run):
     info_msg.R = [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0]
 
     rosbag_info_dict = get_bag_info(output_bag_wvn)
-    total_msgs = sum([x["messages"] for x in rosbag_info_dict["topics"] if x["topic"] in valid_topics])
+    total_msgs = sum(
+        [
+            x["messages"]
+            for x in rosbag_info_dict["topics"]
+            if x["topic"] in valid_topics
+        ]
+    )
     total_time_img = 0
     total_time_state = 0
     n = 0
@@ -169,7 +179,9 @@ def do(n, dry_run):
             position=1,
             bar_format="{desc:<13}{percentage:3.0f}%|{bar:20}{r_bar}",
         ) as pbar:
-            for topic, msg, ts in bag.read_messages(topics=None, start_time=start_time, end_time=end_time):
+            for topic, msg, ts in bag.read_messages(
+                topics=None, start_time=start_time, end_time=end_time
+            ):
                 if rospy.is_shutdown():
                     return
                 pbar.update(1)
@@ -189,7 +201,9 @@ def do(n, dry_run):
 
                     info_msg.header = msg.header
                     try:
-                        wvn_ros_interface.image_callback(image_msg, info_msg, camera_options)
+                        wvn_ros_interface.image_callback(
+                            image_msg, info_msg, camera_options
+                        )
                     except Exception as e:
                         print("Bad image_callback", e)
 

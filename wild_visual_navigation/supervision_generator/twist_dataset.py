@@ -119,8 +119,12 @@ class TwistDataset(Dataset):
         # Make torch tensors
         # Do not pass the dtype, let torch figure it out
         self.timestamps = torch.tensor(timestamp.iloc[idx_ini:idx_end, :].values)
-        self.current_twist = torch.tensor(current_df.iloc[idx_ini:idx_end, :].values).to(torch.float32)
-        self.desired_twist = torch.tensor(desired_df.iloc[idx_ini:idx_end, :].values).to(torch.float32)
+        self.current_twist = torch.tensor(
+            current_df.iloc[idx_ini:idx_end, :].values
+        ).to(torch.float32)
+        self.desired_twist = torch.tensor(
+            desired_df.iloc[idx_ini:idx_end, :].values
+        ).to(torch.float32)
         self.size = self.current_twist.shape[0]
 
     def __len__(self):

@@ -24,7 +24,9 @@ class TrtModel:
         self.engine = self.load_engine(self.runtime, self.engine_path)
 
         self.bindings = OrderedDict()
-        self.named_binding = namedtuple("Binding", ("name", "dtype", "shape", "data", "ptr"))
+        self.named_binding = namedtuple(
+            "Binding", ("name", "dtype", "shape", "data", "ptr")
+        )
         self.allocate_buffers()
 
         # Initialize execution context
@@ -43,8 +45,12 @@ class TrtModel:
             name = self.engine.get_binding_name(index)
             dtype = trt.nptype(self.engine.get_binding_dtype(index))
             shape = tuple(self.engine.get_binding_shape(index))
-            data = torch.from_numpy(np.empty(shape, dtype=np.dtype(dtype))).to(self.device)
-            self.bindings[name] = self.named_binding(name, dtype, shape, data, int(data.data_ptr()))
+            data = torch.from_numpy(np.empty(shape, dtype=np.dtype(dtype))).to(
+                self.device
+            )
+            self.bindings[name] = self.named_binding(
+                name, dtype, shape, data, int(data.data_ptr())
+            )
 
         self.binding_addrs = OrderedDict((n, d.ptr) for n, d in self.bindings.items())
 
@@ -61,7 +67,9 @@ class TrtModel:
 class DinoTrtInterface:
     def __init__(
         self,
-        trt_model_path: str = os.path.join(WVN_ROOT_DIR, "assets/dino/dino_exported.trt"),
+        trt_model_path: str = os.path.join(
+            WVN_ROOT_DIR, "assets/dino/dino_exported.trt"
+        ),
         device: str = "cuda",
     ):
         self.device = device
@@ -119,7 +127,9 @@ class DinoTrtInterface:
         # resize and interpolate features
         new_size = (H, H)
         pad = int((W - H) / 2)
-        features = F.interpolate(features, new_size, mode="bilinear", align_corners=True)
+        features = F.interpolate(
+            features, new_size, mode="bilinear", align_corners=True
+        )
         features = F.pad(features, pad=[pad, pad, 0, 0])
 
         return features
@@ -168,7 +178,9 @@ def run_dino_trt_interfacer():
                 n = (i - 1) * 10 + (j - 1)
                 if n >= di.get_feature_dim():
                     break
-                ax[i][j].imshow(feat_dino[0][n].cpu(), cmap=plt.colormaps.get("inferno"))
+                ax[i][j].imshow(
+                    feat_dino[0][n].cpu(), cmap=plt.colormaps.get("inferno")
+                )
                 ax[i][j].set_title("Features [0]")
     remove_axes(ax)
 

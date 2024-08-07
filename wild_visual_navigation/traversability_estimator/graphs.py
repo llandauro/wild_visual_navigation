@@ -147,7 +147,11 @@ class BaseGraph:
             return abs(node.timestamp - timestamp) < eps
 
         with self._lock:
-            nodes = sorted(nx.subgraph_view(self._graph, filter_node=approximate_timestamp_filter).nodes)
+            nodes = sorted(
+                nx.subgraph_view(
+                    self._graph, filter_node=approximate_timestamp_filter
+                ).nodes
+            )
 
         return nodes[0] if len(nodes) > 0 else None
 
@@ -177,13 +181,19 @@ class BaseGraph:
                         d = abs(other.distance_to(node))
                         return d >= min_radius and d < max_radius
 
-                    nodes = sorted(nx.subgraph_view(self._graph, filter_node=pose_distance_filter).nodes)
+                    nodes = sorted(
+                        nx.subgraph_view(
+                            self._graph, filter_node=pose_distance_filter
+                        ).nodes
+                    )
 
         except Exception as e:
             print(f"[get_nodes_within_radius_range] Exception: {e}")
         return sorted(nodes)
 
-    def get_nodes_within_timespan(self, t_ini: float, t_end: float, open_interval: bool = False):
+    def get_nodes_within_timespan(
+        self, t_ini: float, t_end: float, open_interval: bool = False
+    ):
         """Returns all nodes in (t_ini, t_end)
 
         Returns:
@@ -197,7 +207,9 @@ class BaseGraph:
                 return node.timestamp >= t_ini and node.timestamp <= t_end
 
         with self._lock:
-            nodes = list(nx.subgraph_view(self._graph, filter_node=temporal_filter).nodes)
+            nodes = list(
+                nx.subgraph_view(self._graph, filter_node=temporal_filter).nodes
+            )
         return nodes
 
     def remove_nodes(self, nodes: list):
@@ -214,7 +226,12 @@ class BaseGraph:
         # Significantly faster then checking all the nodes
         nodes_to_remove = []
         for n in self._graph.nodes()._nodes.keys():
-            if torch.linalg.norm(n.pose_base_in_world[:3, 3] - node.pose_base_in_world[:3, 3]) > min_radius:
+            if (
+                torch.linalg.norm(
+                    n.pose_base_in_world[:3, 3] - node.pose_base_in_world[:3, 3]
+                )
+                > min_radius
+            ):
                 nodes_to_remove.append(n)
             else:
                 break
@@ -225,7 +242,9 @@ class BaseGraph:
         self.remove_nodes(nodes_to_remove)
 
     def remove_nodes_within_timestamp(self, t_ini: float, t_end: float):
-        nodes_to_remove = self.get_nodes_within_timespan(t_ini, t_end, open_interval=False)
+        nodes_to_remove = self.get_nodes_within_timespan(
+            t_ini, t_end, open_interval=False
+        )
         self.remove_nodes(nodes_to_remove)
 
 
@@ -329,7 +348,9 @@ def run_base_graph():
     for i in range(N):
         s = BaseNode(
             timestamp=i,
-            pose_base_in_world=SE3(SO3.identity(), torch.Tensor([i / 10.0, 0, 0])).as_matrix(),
+            pose_base_in_world=SE3(
+                SO3.identity(), torch.Tensor([i / 10.0, 0, 0])
+            ).as_matrix(),
         )
         nodes_list.append(s)
         graph.add_node(s)
@@ -346,7 +367,9 @@ def run_base_graph():
     # Get nodes within radius
     radius = 0.2
     query_node = graph.get_node_with_timestamp(5.0)
-    nodes = graph.get_nodes_within_radius_range(query_node, min_radius=0, max_radius=radius)
+    nodes = graph.get_nodes_within_radius_range(
+        query_node, min_radius=0, max_radius=radius
+    )
     for n in nodes:
         d = query_node.distance_to(n)
         assert d <= radius
@@ -385,7 +408,9 @@ def run_temporal_window_graph():
         t = i
         s = BaseNode(
             timestamp=t,
-            pose_base_in_world=SE3(SO3.identity(), torch.Tensor([i / 10.0, 0, 0])).as_matrix(),
+            pose_base_in_world=SE3(
+                SO3.identity(), torch.Tensor([i / 10.0, 0, 0])
+            ).as_matrix(),
         )
         nodes_list.append(s)
         graph.add_node(s)

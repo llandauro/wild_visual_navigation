@@ -87,7 +87,9 @@ class DinoInterface:
         B, D, H, W = img.shape
         new_features_size = (H, H)
         # pad = int((W - H) / 2)
-        features = F.interpolate(features, new_features_size, mode="bilinear", align_corners=True)
+        features = F.interpolate(
+            features, new_features_size, mode="bilinear", align_corners=True
+        )
         # features = F.pad(features, pad=[pad, pad, 0, 0])
         return features
 
@@ -113,7 +115,10 @@ def run_dino_interfacer():
 
     from pytictac import Timer
     from wild_visual_navigation.visu import get_img_from_fig
-    from wild_visual_navigation.utils.testing import load_test_image, make_results_folder
+    from wild_visual_navigation.utils.testing import (
+        load_test_image,
+        make_results_folder,
+    )
     import matplotlib.pyplot as plt
     from stego.utils import remove_axes
 
@@ -144,7 +149,9 @@ def run_dino_interfacer():
         patch_size=patch,
     )
 
-    with Timer(f"DINO, input_size, {di.input_size}, model, {di.backbone_type}, patch_size, {di.vit_patch_size}"):
+    with Timer(
+        f"DINO, input_size, {di.input_size}, model, {di.backbone_type}, patch_size, {di.vit_patch_size}"
+    ):
         feat_dino = di.inference(img)
 
     if save_features:
@@ -182,7 +189,9 @@ def run_dino_interfacer():
                     n = (i - 1) * 10 + (j - 1)
                     if n >= di.get_feature_dim():
                         break
-                    ax[i][j].imshow(feat_dino[0][n].cpu(), cmap=plt.colormaps.get("inferno"))
+                    ax[i][j].imshow(
+                        feat_dino[0][n].cpu(), cmap=plt.colormaps.get("inferno")
+                    )
                     ax[i][j].set_title("Features [0]")
         remove_axes(ax)
         plt.tight_layout()

@@ -34,20 +34,35 @@ def msg_to_se3(msg):
     """
     if isinstance(msg, Pose):
         p = np.array([msg.position.x, msg.position.y, msg.position.z])
-        q = np.array([msg.orientation.x, msg.orientation.y, msg.orientation.z, msg.orientation.w])
+        q = np.array(
+            [msg.orientation.x, msg.orientation.y, msg.orientation.z, msg.orientation.w]
+        )
     elif isinstance(msg, Transform):
         p = np.array([msg.translation.x, msg.translation.y, msg.translation.z])
         q = np.array([msg.rotation.x, msg.rotation.y, msg.rotation.z, msg.rotation.w])
     elif isinstance(msg, TransformStamped):
-        p = np.array([msg.transform.translation.x, msg.transform.translation.y, msg.transform.translation.z])
+        p = np.array(
+            [
+                msg.transform.translation.x,
+                msg.transform.translation.y,
+                msg.transform.translation.z,
+            ]
+        )
         q = np.array(
-            [msg.transform.rotation.x, msg.transform.rotation.y, msg.transform.rotation.z, msg.transform.rotation.w]
+            [
+                msg.transform.rotation.x,
+                msg.transform.rotation.y,
+                msg.transform.rotation.z,
+                msg.transform.rotation.w,
+            ]
         )
 
     norm = np.linalg.norm(q)
     if np.abs(norm - 1.0) > 1e-3:
         raise ValueError(
-            "Received un-normalized quaternion (q = {0:s} ||q|| = {1:3.6f})".format(str(q), np.linalg.norm(q))
+            "Received un-normalized quaternion (q = {0:s} ||q|| = {1:3.6f})".format(
+                str(q), np.linalg.norm(q)
+            )
         )
     elif np.abs(norm - 1.0) > 1e-6:
         q = q / norm
@@ -62,7 +77,9 @@ def gazebo_callback(msg):
     if stamp == last_stamp:
         return
 
-    T_world_base = msg_to_se3(msg.pose[1])  # this is the base_link pose in world frame (from gazebo)
+    T_world_base = msg_to_se3(
+        msg.pose[1]
+    )  # this is the base_link pose in world frame (from gazebo)
     T_base_world = np.linalg.inv(T_world_base)
 
     br = tf2_ros.TransformBroadcaster()
@@ -113,10 +130,14 @@ if __name__ == "__main__":
     marker.mesh_resource = f"file://{default_model_file}"
 
     # Set subscriber of gazebo links
-    gazebo_sub = rospy.Subscriber("/gazebo/link_states/", LinkStates, gazebo_callback, queue_size=10)
+    gazebo_sub = rospy.Subscriber(
+        "/gazebo/link_states/", LinkStates, gazebo_callback, queue_size=10
+    )
 
     # Set publisher
-    pub = rospy.Publisher("/wild_visual_navigation_jackal/simulation_world", Marker, queue_size=10)
+    pub = rospy.Publisher(
+        "/wild_visual_navigation_jackal/simulation_world", Marker, queue_size=10
+    )
 
     # Set timer to publish
     rospy.loginfo("[gazebo_world_publisher] Published world!")

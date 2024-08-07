@@ -17,11 +17,16 @@ paper_colors_rgb_u8 = {
     "cyan_light": (164, 216, 223),
     "green_light": (192, 218, 152),
 }
-paper_colors_rgba_u8 = {k: (v[0], v[1], v[2], 255) for k, v in paper_colors_rgb_u8.items()}
-paper_colors_rgb_f = {
-    k: (float(v[0]) / 255.0, float(v[1]) / 255.0, float(v[2]) / 255.0) for k, v in paper_colors_rgb_u8.items()
+paper_colors_rgba_u8 = {
+    k: (v[0], v[1], v[2], 255) for k, v in paper_colors_rgb_u8.items()
 }
-paper_colors_rgba_f = {k: (v[0], v[1], v[2], 1.0) for k, v in paper_colors_rgb_f.items()}
+paper_colors_rgb_f = {
+    k: (float(v[0]) / 255.0, float(v[1]) / 255.0, float(v[2]) / 255.0)
+    for k, v in paper_colors_rgb_u8.items()
+}
+paper_colors_rgba_f = {
+    k: (v[0], v[1], v[2], 1.0) for k, v in paper_colors_rgb_f.items()
+}
 
 
 def adjust_lightness(color, amount=0.5):

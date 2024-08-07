@@ -60,7 +60,9 @@ def anymal_msg_callback(anymal_state_msg, policy_latent_msg):
     vector_state.labels.extend(["vx", "vy", "vz", "wx", "wy", "wz"])
     vector_state.labels.extend([f"position_{x}" for x in anymal_state_msg.joints.name])
     vector_state.labels.extend([f"velocity_{x}" for x in anymal_state_msg.joints.name])
-    vector_state.labels.extend([f"acceleration_{x}" for x in anymal_state_msg.joints.name])
+    vector_state.labels.extend(
+        [f"acceleration_{x}" for x in anymal_state_msg.joints.name]
+    )
     vector_state.labels.extend([f"effort_{x}" for x in anymal_state_msg.joints.name])
     vector_state.values.append(anymal_state_msg.pose.pose.position.x)
     vector_state.values.append(anymal_state_msg.pose.pose.position.y)
@@ -101,14 +103,24 @@ if __name__ == "__main__":
     rospy.init_node("anymal_msg_converter_node")
 
     # Read parameters
-    anymal_state_msg_topic = rospy.get_param("~anymal_state_msg_topic", "/state_estimator/anymal_state_msg")
+    anymal_state_msg_topic = rospy.get_param(
+        "~anymal_state_msg_topic", "/state_estimator/anymal_state_msg"
+    )
     policy_latent_topic = rospy.get_param("~policy_latent_topic", "")
-    output_topic = rospy.get_param("~output_topic", "/wild_visual_navigation_ros/robot_state")
+    output_topic = rospy.get_param(
+        "~output_topic", "/wild_visual_navigation_ros/robot_state"
+    )
 
     # Set publishers and subscribers
-    anymal_state_msg_sub = message_filters.Subscriber(anymal_state_msg_topic, AnymalState)
-    policy_latent_sub = message_filters.Subscriber(policy_latent_topic, Float32MultiArray)
-    synced_sub = message_filters.TimeSynchronizer([anymal_state_msg_sub, policy_latent_sub], 10)
+    anymal_state_msg_sub = message_filters.Subscriber(
+        anymal_state_msg_topic, AnymalState
+    )
+    policy_latent_sub = message_filters.Subscriber(
+        policy_latent_topic, Float32MultiArray
+    )
+    synced_sub = message_filters.TimeSynchronizer(
+        [anymal_state_msg_sub, policy_latent_sub], 10
+    )
     synced_sub.registerCallback(anymal_msg_callback)
     robot_state_pub = rospy.Publisher(output_topic, RobotState, queue_size=10)
 

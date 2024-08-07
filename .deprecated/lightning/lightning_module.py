@@ -18,7 +18,9 @@ class LightningTrav(pl.LightningModule):
         self._model = get_model(exp["model"])
 
         self._visu_count = {"val": 0, "test": 0, "train": 0}
-        self._visualizer = LearningVisualizer(**exp["visu"]["learning_visu"], pl_model=self)
+        self._visualizer = LearningVisualizer(
+            **exp["visu"]["learning_visu"], pl_model=self
+        )
         self._exp = exp
         self._mode = "train"
         self._log = log
@@ -35,7 +37,9 @@ class LightningTrav(pl.LightningModule):
         self.nr_test_run = -1
         self._val_step = 0
 
-        self._traversability_loss = TraversabilityLoss(**self._exp["loss"], model=self._model)
+        self._traversability_loss = TraversabilityLoss(
+            **self._exp["loss"], model=self._model
+        )
         threshold = torch.tensor([0.5], dtype=torch.float32, requires_grad=False)
         self.register_buffer("threshold", threshold)
 
@@ -57,7 +61,8 @@ class LightningTrav(pl.LightningModule):
             if self.global_step % nr == 0:
                 path = os.path.join(
                     self._exp["general"]["model_path"],
-                    self._exp["general"]["store_model_every_n_steps_key"] + f"_{self.global_step}.pt",
+                    self._exp["general"]["store_model_every_n_steps_key"]
+                    + f"_{self.global_step}.pt",
                 )
                 self.update_threshold()
                 torch.save(self.state_dict(), path)
@@ -93,7 +98,9 @@ class LightningTrav(pl.LightningModule):
         mask_anomaly[mask_supervision] = False
         # Elements are valid if they are either an anomaly or we have walked on them to fit the ROC
         mask_valid = mask_anomaly | mask_supervision
-        self._auxiliary_training_roc(res_updated[mask_valid, 0], graph.y[mask_valid].type(torch.long))
+        self._auxiliary_training_roc(
+            res_updated[mask_valid, 0], graph.y[mask_valid].type(torch.long)
+        )
 
         return loss
 
@@ -109,7 +116,9 @@ class LightningTrav(pl.LightningModule):
         self._metric_logger.reset("val")
         self._val_step = 0
 
-    def validation_step(self, batch: any, batch_idx: int, dataloader_id: int = 0) -> torch.Tensor:
+    def validation_step(
+        self, batch: any, batch_idx: int, dataloader_id: int = 0
+    ) -> torch.Tensor:
         self._mode = "val"
         graph = batch
         BS = graph.ptr.numel() - 1
@@ -118,8 +127,12 @@ class LightningTrav(pl.LightningModule):
 
         if hasattr(graph, "label"):
             self.update_threshold()
-            self._metric_logger.log_image(graph, res_updated, self._mode, threshold=self.threshold[0].item())
-            self._metric_logger.log_confidence(graph, res_updated, loss_aux["confidence"], self._mode)
+            self._metric_logger.log_image(
+                graph, res_updated, self._mode, threshold=self.threshold[0].item()
+            )
+            self._metric_logger.log_confidence(
+                graph, res_updated, loss_aux["confidence"], self._mode
+            )
 
         for k, v in loss_aux.items():
             if k.find("loss") != -1:
@@ -167,7 +180,9 @@ class LightningTrav(pl.LightningModule):
         self._metric_logger.reset("test")
         self.update_threshold()
 
-    def test_step(self, batch: any, batch_idx: int, dataloader_id: int = 0) -> torch.Tensor:
+    def test_step(
+        self, batch: any, batch_idx: int, dataloader_id: int = 0
+    ) -> torch.Tensor:
         self._mode = "test"
         graph = batch
         BS = graph.ptr.numel() - 1
@@ -176,8 +191,12 @@ class LightningTrav(pl.LightningModule):
 
         if hasattr(graph, "label"):
             self.update_threshold()
-            self._metric_logger.log_image(graph, res_updated, self._mode, threshold=self.threshold.item())
-            self._metric_logger.log_confidence(graph, res_updated, loss_aux["confidence"], self._mode)
+            self._metric_logger.log_image(
+                graph, res_updated, self._mode, threshold=self.threshold.item()
+            )
+            self._metric_logger.log_confidence(
+                graph, res_updated, loss_aux["confidence"], self._mode
+            )
 
         for k, v in loss_aux.items():
             if k.find("loss") != -1:
@@ -214,9 +233,13 @@ class LightningTrav(pl.LightningModule):
 
     def configure_optimizers(self) -> torch.optim.Optimizer:
         if self._exp["optimizer"]["name"] == "ADAM":
-            return torch.optim.Adam(self._model.parameters(), lr=self._exp["optimizer"]["lr"])
+            return torch.optim.Adam(
+                self._model.parameters(), lr=self._exp["optimizer"]["lr"]
+            )
         elif self._exp["optimizer"]["name"] == "SGD":
-            return torch.optim.SGD(self._model.parameters(), lr=self._exp["optimizer"]["lr"])
+            return torch.optim.SGD(
+                self._model.parameters(), lr=self._exp["optimizer"]["lr"]
+            )
 
     def visu(self, graph: Data, res: torch.tensor, confidence: torch.tensor):
         try:
@@ -246,7 +269,8 @@ class LightningTrav(pl.LightningModule):
                 # check if visualization should be skipped
                 if not (
                     self._visu_count[self._mode] < self._exp["visu"][self._mode]
-                    and self.current_epoch % self._exp["visu"]["log_every_n_epochs"] == 0
+                    and self.current_epoch % self._exp["visu"]["log_every_n_epochs"]
+                    == 0
                 ):
                     break
 
@@ -286,8 +310,12 @@ class LightningTrav(pl.LightningModule):
                 )
 
                 nr_channel_reco = graph[b].x.shape[1]
-                reco_loss = F.mse_loss(pred[:, -nr_channel_reco:], graph[b].x, reduction="none").mean(dim=1)
-                conf = self._traversability_loss._confidence_generator.inference_without_update(reco_loss)
+                reco_loss = F.mse_loss(
+                    pred[:, -nr_channel_reco:], graph[b].x, reduction="none"
+                ).mean(dim=1)
+                conf = self._traversability_loss._confidence_generator.inference_without_update(
+                    reco_loss
+                )
 
                 # # Visualize Graph with Segmentation
                 c1 = self._visualizer.plot_traversability_graph_on_seg(
@@ -332,7 +360,9 @@ class LightningTrav(pl.LightningModule):
                 seg_pixel_index = (graph.seg + batch_pixel_index_offset).flatten()
                 buffer_confidence = confidence[seg_pixel_index].reshape(BS, H, W)
 
-                self._visualizer.plot_detectron_classification(img, buffer_confidence[b], tag="Confidence MAP")
+                self._visualizer.plot_detectron_classification(
+                    img, buffer_confidence[b], tag="Confidence MAP"
+                )
 
                 if self._mode == "val":
                     buffer_trav = graph.seg.clone().type(torch.float32).flatten()
@@ -369,7 +399,9 @@ class LightningTrav(pl.LightningModule):
             mean = self._traversability_loss._confidence_generator.mean.item()
             std = self._traversability_loss._confidence_generator.std.item()
             nr_channel_reco = graph[b].x.shape[1]
-            reco_loss = F.mse_loss(pred[:, -nr_channel_reco:], graph[b].x, reduction="none").mean(dim=1)
+            reco_loss = F.mse_loss(
+                pred[:, -nr_channel_reco:], graph[b].x, reduction="none"
+            ).mean(dim=1)
 
             self._visualizer.plot_histogram(
                 reco_loss,

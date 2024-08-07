@@ -37,18 +37,24 @@ class SmartCarrotNode:
             self.filter_chain_funcs.append(self.apply_center_force)
 
             def distance_to_line(array, x_cor, y_cor, yaw, start_x, start_y):
-                return np.abs(np.cos(yaw) * (x_cor - start_x) - np.sin(yaw) * (y_cor - start_y))
+                return np.abs(
+                    np.cos(yaw) * (x_cor - start_x) - np.sin(yaw) * (y_cor - start_y)
+                )
 
             self.vdistance_to_line = np.vectorize(distance_to_line)
 
         # Initialize ROS publishers
         self.pub = rospy.Publisher(f"~{self.debug_pub_topic}", GridMap, queue_size=5)
-        self.pub_goal = rospy.Publisher(self.goal_pub_topic, PoseWithCovarianceStamped, queue_size=5)
+        self.pub_goal = rospy.Publisher(
+            self.goal_pub_topic, PoseWithCovarianceStamped, queue_size=5
+        )
 
         # Initialize TF listener
         self.tf_buffer = tf2_ros.Buffer(cache_time=rospy.Duration(10.0))
         self.tf_listener = tf2_ros.TransformListener(self.tf_buffer)
-        self.sub = rospy.Subscriber(self.gridmap_sub_topic, GridMap, self.callback, queue_size=5)
+        self.sub = rospy.Subscriber(
+            self.gridmap_sub_topic, GridMap, self.callback, queue_size=5
+        )
 
     def apply_distance_force(self, yaw, sdf):
         if self.distance_force is None:
@@ -57,7 +63,8 @@ class SmartCarrotNode:
             for x in range(sdf.shape[0]):
                 for y in range(sdf.shape[1]):
                     self.distance_force[x, y] = math.sqrt(
-                        (x - int(sdf.shape[0] / 2)) ** 2 + (y - int(sdf.shape[1] / 2)) ** 2
+                        (x - int(sdf.shape[0] / 2)) ** 2
+                        + (y - int(sdf.shape[1] / 2)) ** 2
                     )
             self.distance_force /= self.distance_force.max()
             self.distance_force *= self.distance_force_factor
@@ -65,7 +72,9 @@ class SmartCarrotNode:
 
     def apply_center_force(self, yaw, sdf):
         xv, yv = np.meshgrid(np.arange(0, sdf.shape[0]), np.arange(0, sdf.shape[1]))
-        center_force = self.vdistance_to_line(sdf, xv, yv, yaw, int(sdf.shape[0] / 2), int(sdf.shape[1] / 2))
+        center_force = self.vdistance_to_line(
+            sdf, xv, yv, yaw, int(sdf.shape[0] / 2), int(sdf.shape[1] / 2)
+        )
         return sdf - center_force * self.center_force_factor
 
     def get_pattern_mask(self, H, W, yaw):
@@ -90,7 +99,9 @@ class SmartCarrotNode:
         invalid_elevation = np.isnan(elevation_layer)
         # Increase the size of the invalid elevation to reduce noise
         kernel = np.ones((3, 3), np.uint8)
-        invalid_elevation = cv2.dilate(np.uint8(invalid_elevation) * 255, kernel, iterations=1) == 255
+        invalid_elevation = (
+            cv2.dilate(np.uint8(invalid_elevation) * 255, kernel, iterations=1) == 255
+        )
         return invalid_elevation
 
     def callback(self, msg):
@@ -112,7 +123,10 @@ class SmartCarrotNode:
 
         try:
             res = self.tf_buffer.lookup_transform(
-                self.map_frame, self.base_frame, msg.info.header.stamp, timeout=rospy.Duration(0.01)
+                self.map_frame,
+                self.base_frame,
+                msg.info.header.stamp,
+                timeout=rospy.Duration(0.01),
             )
         except Exception as e:
             error = str(e)
@@ -121,7 +135,9 @@ class SmartCarrotNode:
 
         H, W = layers["sdf"].shape
         rot = res.transform.rotation
-        yaw = R.from_quat([rot.x, rot.y, rot.z, rot.w]).as_euler("zxy", degrees=False)[0]
+        yaw = R.from_quat([rot.x, rot.y, rot.z, rot.w]).as_euler("zxy", degrees=False)[
+            0
+        ]
 
         mask_pattern = self.get_pattern_mask(H, W, yaw)
         mask_elevation = self.get_elevation_mask(layers["elevation"])
@@ -133,7 +149,9 @@ class SmartCarrotNode:
         layers["sdf"][mask_elevation] = -np.inf
 
         if layers["sdf"].min() == layers["sdf"].max():
-            rospy.logwarn(f"No valid elevation within the SDF of the defined pattern {e}")
+            rospy.logwarn(
+                f"No valid elevation within the SDF of the defined pattern {e}"
+            )
             return
 
         # Get index of the maximum gridmax cell index within the SDF
@@ -161,7 +179,9 @@ class SmartCarrotNode:
 
         if self.debug:
             # Republish the SDF used to search for the maximum goal
-            msg.data[msg.layers.index("sdf")].data = layers["sdf"][::-1, ::-1].transpose().ravel()
+            msg.data[msg.layers.index("sdf")].data = (
+                layers["sdf"][::-1, ::-1].transpose().ravel()
+            )
             self.pub.publish(msg)
 
 

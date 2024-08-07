@@ -47,7 +47,9 @@ def jackal_msg_callback(jackal_state, return_msg=False):
     robot_state_msg.states[0].values[11] = robot_state_msg.twist.twist.angular.y
     robot_state_msg.states[0].values[12] = robot_state_msg.twist.twist.angular.z
 
-    for i, x in enumerate(["tx", "ty", "tz", "qx", "qy", "qz", "qw", "vx", "vy", "vz", "wx", "wy", "wz"]):
+    for i, x in enumerate(
+        ["tx", "ty", "tz", "qx", "qy", "qz", "qw", "vx", "vy", "vz", "wx", "wy", "wz"]
+    ):
         robot_state_msg.states[0].labels[i] = x
 
     if return_msg:
@@ -70,12 +72,20 @@ if __name__ == "__main__":
     rospy.init_node("jackal_state_converter_node")
 
     # We subscribe the odometry topic (state)
-    jackal_state_sub = rospy.Subscriber("/odometry/filtered", Odometry, jackal_msg_callback, queue_size=20)
-    robot_state_pub = rospy.Publisher("/wild_visual_navigation_node/robot_state", RobotState, queue_size=20)
+    jackal_state_sub = rospy.Subscriber(
+        "/odometry/filtered", Odometry, jackal_msg_callback, queue_size=20
+    )
+    robot_state_pub = rospy.Publisher(
+        "/wild_visual_navigation_node/robot_state", RobotState, queue_size=20
+    )
 
     # And also the twist command from teleoperation
-    ref_twist_sub = rospy.Subscriber("/jackal_velocity_controller/cmd_vel", Twist, twist_msg_callback, queue_size=20)
-    ref_twiststamped_pub = rospy.Publisher("/wild_visual_navigation_node/reference_twist", TwistStamped, queue_size=20)
+    ref_twist_sub = rospy.Subscriber(
+        "/jackal_velocity_controller/cmd_vel", Twist, twist_msg_callback, queue_size=20
+    )
+    ref_twiststamped_pub = rospy.Publisher(
+        "/wild_visual_navigation_node/reference_twist", TwistStamped, queue_size=20
+    )
 
     rospy.loginfo("[jackal_state_converter_node] ready")
     rospy.spin()

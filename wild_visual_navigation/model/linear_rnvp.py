@@ -32,8 +32,12 @@ class LinearBatchNorm(nn.Module):
             self.batch_mean = x.mean(0)
             self.batch_var = x.var(0)
 
-            self.running_mean.mul_(self.momentum).add_(self.batch_mean.data * (1 - self.momentum))
-            self.running_var.mul_(self.momentum).add_(self.batch_var.data * (1 - self.momentum))
+            self.running_mean.mul_(self.momentum).add_(
+                self.batch_mean.data * (1 - self.momentum)
+            )
+            self.running_var.mul_(self.momentum).add_(
+                self.batch_var.data * (1 - self.momentum)
+            )
 
             mean = self.batch_mean
             var = self.batch_var
@@ -233,8 +237,12 @@ class LinearRnvp(nn.Module):
     ):
         super().__init__()
 
-        self.register_buffer("prior_mean", torch.zeros(input_size))  # Normal Gaussian with zero mean
-        self.register_buffer("prior_var", torch.ones(input_size))  # Normal Gaussian with unit variance
+        self.register_buffer(
+            "prior_mean", torch.zeros(input_size)
+        )  # Normal Gaussian with zero mean
+        self.register_buffer(
+            "prior_var", torch.ones(input_size)
+        )  # Normal Gaussian with unit variance
 
         if mask_type == "odds":
             mask = torch.arange(0, input_size).float() % 2
@@ -270,11 +278,15 @@ class LinearRnvp(nn.Module):
         self.flows = SequentialFlow(*blocks)
 
     def logprob(self, x):
-        return self.prior.log_prob(x)  # Compute log probability of the input at the Gaussian distribution
+        return self.prior.log_prob(
+            x
+        )  # Compute log probability of the input at the Gaussian distribution
 
     @property
     def prior(self):
-        return distributions.Normal(self.prior_mean, self.prior_var)  # Normal Gaussian with zero mean and unit variance
+        return distributions.Normal(
+            self.prior_mean, self.prior_var
+        )  # Normal Gaussian with zero mean and unit variance
 
     def forward(self, data: Data):
         x = data.x

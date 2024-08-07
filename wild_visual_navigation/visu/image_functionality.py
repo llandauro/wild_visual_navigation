@@ -56,18 +56,24 @@ def image_functionality(func):
         if log_exp:
             if args[0]._pl_model.logger is not None:
                 H, W, C = img.shape
-                ds = cv2.resize(img, dsize=(int(W / 2), int(H / 2)), interpolation=cv2.INTER_CUBIC)
+                ds = cv2.resize(
+                    img, dsize=(int(W / 2), int(H / 2)), interpolation=cv2.INTER_CUBIC
+                )
                 try:
                     # logger == neptuneai
                     from neptune.types import File
 
-                    args[0]._pl_model.logger.experiment[tag].log(File.as_image(np.float32(ds) / 255), step=epoch)
+                    args[0]._pl_model.logger.experiment[tag].log(
+                        File.as_image(np.float32(ds) / 255), step=epoch
+                    )
                 except Exception:
                     try:
                         # logger == wandb
                         import wandb
 
-                        args[0]._pl_model.logger.experiment.log({tag: [wandb.Image(ds, caption=tag)]}, commit=True)
+                        args[0]._pl_model.logger.experiment.log(
+                            {tag: [wandb.Image(ds, caption=tag)]}, commit=True
+                        )
                     except Exception:
                         try:
                             # logger == tensorboard

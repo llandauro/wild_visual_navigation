@@ -103,11 +103,19 @@ for scene in ["forest", "hilly", "grassland"]:
                     buffer_pred = y_pred[seg_pixel_index].reshape(BS, H, W)
                     buffer_prop = d.y[seg_pixel_index].reshape(BS, H, W)
 
-                    test_auroc_gt_image(preds=buffer_pred, target=d.label.type(torch.long))
-                    test_auroc_prop_image(preds=buffer_pred, target=buffer_prop.type(torch.long).cpu())
+                    test_auroc_gt_image(
+                        preds=buffer_pred, target=d.label.type(torch.long)
+                    )
+                    test_auroc_prop_image(
+                        preds=buffer_pred, target=buffer_prop.type(torch.long).cpu()
+                    )
 
-                    test_acc_gt_image(preds=buffer_pred, target=d.label.type(torch.long))
-                    test_acc_prop_image(preds=buffer_pred, target=buffer_prop.type(torch.long).cpu())
+                    test_acc_gt_image(
+                        preds=buffer_pred, target=d.label.type(torch.long)
+                    )
+                    test_acc_prop_image(
+                        preds=buffer_pred, target=buffer_prop.type(torch.long).cpu()
+                    )
 
                 res = {
                     "test_auroc_gt_image": test_auroc_gt_image.compute().item(),
@@ -120,7 +128,9 @@ for scene in ["forest", "hilly", "grassland"]:
                     f"{model_name}:  {scene} -test {test_scene} ---- AUROC_GT_Image {test_auroc_gt_image.compute():.3f} , AUROC_SELF_Image {test_auroc_prop_image.compute():.3f}"
                 )
 
-            for features_test, y_gt, y_prop, test_scene in zip(features_tests, y_gts, y_props, test_scenes):
+            for features_test, y_gt, y_prop, test_scene in zip(
+                features_tests, y_gts, y_props, test_scenes
+            ):
                 y_pred = v.predict_proba(features_test)
                 test_auroc_gt.update(
                     torch.from_numpy(y_pred[:, 1]),

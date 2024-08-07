@@ -9,7 +9,9 @@ os.mkdir(os.path.join(ROOT_DIR, "wvn_output/labeling", env))
 
 
 ls = []
-with open(f"/media/Data/Datasets/2022_Perugia/wvn_output/split/{env}_test.txt", "r") as f:
+with open(
+    f"/media/Data/Datasets/2022_Perugia/wvn_output/split/{env}_test.txt", "r"
+) as f:
     while True:
         line = f.readline()
         if not line:

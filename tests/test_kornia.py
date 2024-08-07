@@ -11,7 +11,9 @@ from liegroups.torch import SE3
 def test_pinhole_camera():
     # Prepare single pinhole model
     # Intrinsics
-    K = torch.FloatTensor([[720, 0, 720, 0], [0, 720, 540, 0], [0, 0, 1, 0], [0, 0, 0, 1]])
+    K = torch.FloatTensor(
+        [[720, 0, 720, 0], [0, 720, 540, 0], [0, 0, 1, 0], [0, 0, 0, 1]]
+    )
     # Extrinsics
     xi = torch.FloatTensor([0, 0, 0, 0, 0, 0])  # (x, y, z, rx, ry, rz)
     pose_camera_in_world = SE3.exp(xi).as_matrix()

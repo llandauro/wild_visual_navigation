@@ -108,7 +108,9 @@ def run_dino_interfacer():
                                 except Exception:
                                     t = np.nan
 
-                                samples.append([size, interp, model, patch, img_name, n, t])
+                                samples.append(
+                                    [size, interp, model, patch, img_name, n, t]
+                                )
 
     t = full_timer.toc()
     print(f"Iterations took {t/1000.0} s/ {t/t/3600000.0} hs")

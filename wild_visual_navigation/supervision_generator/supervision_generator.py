@@ -46,8 +46,12 @@ class SupervisionGenerator:
             outlier_delta=kf_outlier_rejection_delta,
         )
 
-        self._kalman_filter_.init_process_model(proc_model=torch.eye(D) * 1, proc_cov=torch.eye(D) * kf_process_cov)
-        self._kalman_filter_.init_meas_model(meas_model=torch.eye(D), meas_cov=torch.eye(D) * kf_meas_cov)
+        self._kalman_filter_.init_process_model(
+            proc_model=torch.eye(D) * 1, proc_cov=torch.eye(D) * kf_process_cov
+        )
+        self._kalman_filter_.init_meas_model(
+            meas_model=torch.eye(D), meas_cov=torch.eye(D) * kf_meas_cov
+        )
 
         # Initial states
         self._state = torch.FloatTensor([0.0] * D).to(self.device)
@@ -65,7 +69,9 @@ class SupervisionGenerator:
 
         # Future graph
         self._time_horizon = time_horizon
-        self._graph_twist = DistanceWindowGraph(max_distance=graph_max_length, edge_distance=0.0)
+        self._graph_twist = DistanceWindowGraph(
+            max_distance=graph_max_length, edge_distance=0.0
+        )
 
     def get_velocity_selection_matrix(self, velocities: list):
         S = []
@@ -106,7 +112,9 @@ class SupervisionGenerator:
         S = self.get_velocity_selection_matrix(velocities).to(self.device)
 
         # Compute discrepancy
-        error = (torch.nn.functional.mse_loss(S @ current_velocity, S @ desired_velocity)) / max_velocity
+        error = (
+            torch.nn.functional.mse_loss(S @ current_velocity, S @ desired_velocity)
+        ) / max_velocity
 
         # Filtering stage
         with torch.no_grad():
@@ -115,7 +123,9 @@ class SupervisionGenerator:
 
         # Note: The way we use the sigmoid is a bit hacky
         # We use negative argument to revert sigmoid (smaller errors -> 1.0) and stretch the errors
-        self._traversability = torch.sigmoid(-(self._sigmoid_slope * (error - self._sigmoid_cutoff)))
+        self._traversability = torch.sigmoid(
+            -(self._sigmoid_slope * (error - self._sigmoid_cutoff))
+        )
         self._traversability_var = torch.tensor([1.0]).to(
             self._traversability.device
         )  # This needs to be improved, the KF can help
@@ -145,7 +155,9 @@ class SupervisionGenerator:
             )
         )
         # Get all nodes within the time horizon
-        nodes = self._graph_twist.get_nodes_within_timespan(t_ini=(timestamp - self._time_horizon), t_end=timestamp)
+        nodes = self._graph_twist.get_nodes_within_timespan(
+            t_ini=(timestamp - self._time_horizon), t_end=timestamp
+        )
 
         # Integration
         predicted_pose_in_world = nodes[0].base_pose_in_world
@@ -153,13 +165,22 @@ class SupervisionGenerator:
         for node_t, node_tm1 in zip(nodes[1:], nodes[:-1]):
             dt = node_t.timestamp - node_tm1.timestamp
             v_tm1 = node_tm1.desired_twist
-            predicted_pose_in_world = predicted_pose_in_world @ SE3.exp(v_tm1 * dt).as_matrix()
+            predicted_pose_in_world = (
+                predicted_pose_in_world @ SE3.exp(v_tm1 * dt).as_matrix()
+            )
 
         # Measure pose error
         S = self.get_velocity_selection_matrix(velocities).to(self.device)
-        error = (S @ SE3.from_matrix(current_pose_in_world.inverse() @ predicted_pose_in_world).log()).norm()
+        error = (
+            S
+            @ SE3.from_matrix(
+                current_pose_in_world.inverse() @ predicted_pose_in_world
+            ).log()
+        ).norm()
 
-        self._traversability = torch.sigmoid(-(self._sigmoid_slope * (error - self._sigmoid_cutoff)))
+        self._traversability = torch.sigmoid(
+            -(self._sigmoid_slope * (error - self._sigmoid_cutoff))
+        )
         self._traversability_var = torch.tensor([1.0]).to(self._traversability.device)
 
         # Apply threshold to detect hard obstacles
@@ -251,7 +272,9 @@ def run_supervision_generator():
     axs[0].legend(loc="upper right")
 
     # Bottom plot
-    axs[1].plot(df["ts"], df["trav"], label="Traversability", color="tab:blue", linewidth=2)
+    axs[1].plot(
+        df["ts"], df["trav"], label="Traversability", color="tab:blue", linewidth=2
+    )
     axs[1].plot(
         df["ts"],
         np.ones(df["ts"].shape) * ag.untraversable_thr,

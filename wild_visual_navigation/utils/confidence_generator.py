@@ -45,8 +45,12 @@ class ConfidenceGenerator(torch.nn.Module):
                 dim_control=D,
                 dim_meas=D,
             )
-            self._kalman_filter.init_process_model(proc_model=torch.eye(D) * 1, proc_cov=torch.eye(D) * kf_process_cov)
-            self._kalman_filter.init_meas_model(meas_model=torch.eye(D), meas_cov=torch.eye(D) * kf_meas_cov)
+            self._kalman_filter.init_process_model(
+                proc_model=torch.eye(D) * 1, proc_cov=torch.eye(D) * kf_process_cov
+            )
+            self._kalman_filter.init_meas_model(
+                meas_model=torch.eye(D), meas_cov=torch.eye(D) * kf_meas_cov
+            )
             self._update = self.update_kalman_filter
             self._reset = self.reset_kalman_filter
         elif method == "running_mean":
@@ -56,7 +60,9 @@ class ConfidenceGenerator(torch.nn.Module):
 
             self.running_n = torch.nn.Parameter(running_n, requires_grad=False)
             self.running_sum = torch.nn.Parameter(running_sum, requires_grad=False)
-            self.running_sum_of_squares = torch.nn.Parameter(running_sum_of_squares, requires_grad=False)
+            self.running_sum_of_squares = torch.nn.Parameter(
+                running_sum_of_squares, requires_grad=False
+            )
 
             # self.running_n = running_n.to("cuda")
             # self.running_sum = running_sum.to("cuda")
@@ -139,7 +145,9 @@ class ConfidenceGenerator(torch.nn.Module):
         self.std[0] = torch.sqrt(self.var)[0, 0]
 
         # Then the confidence is computed as the distance to the center of the Gaussian given factor*sigma
-        confidence = torch.exp(-(((x - self.mean) / (self.std * self.std_factor)) ** 2) * 0.5)
+        confidence = torch.exp(
+            -(((x - self.mean) / (self.std * self.std_factor)) ** 2) * 0.5
+        )
         confidence[x < self.mean] = 1.0
 
         return confidence.type(torch.float32)
@@ -185,7 +193,9 @@ class ConfidenceGenerator(torch.nn.Module):
             return torch.zeros_like(x)
         shifted_mean = self.mean + self.std * self.std_factor
         std_fac = 1
-        interval_min = max(shifted_mean - std_fac * self.std, torch.zeros_like(self.std))
+        interval_min = max(
+            shifted_mean - std_fac * self.std, torch.zeros_like(self.std)
+        )
         interval_max = shifted_mean + std_fac * self.std
         x = torch.clip(x, interval_min, interval_max)
         confidence = 1 - ((x - interval_min) / (interval_max - interval_min))

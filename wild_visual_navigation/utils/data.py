@@ -26,7 +26,9 @@ class Batch:
         base = ["x"]
 
         tensors_to_concatenate = [
-            k for k in dir(list_of_data[0]) if k[0] != "_" and getattr(list_of_data[0], k) is not None and not k in base
+            k
+            for k in dir(list_of_data[0])
+            if k[0] != "_" and getattr(list_of_data[0], k) is not None and not k in base
         ]
         base = base + tensors_to_concatenate
 
@@ -52,7 +54,11 @@ class Batch:
                     cls.ptr = torch.tensor(ptrs, dtype=torch.long)
                     cls.batch = torch.tensor(batches, dtype=torch.long)
 
-                setattr(cls, k, torch.cat([getattr(data, k) for data in list_of_data], dim=0))
+                setattr(
+                    cls,
+                    k,
+                    torch.cat([getattr(data, k) for data in list_of_data], dim=0),
+                )
 
         cls.ba = cls.x.shape[0]
         return cls

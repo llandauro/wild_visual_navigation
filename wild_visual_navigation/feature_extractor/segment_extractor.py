@@ -13,7 +13,9 @@ class SegmentExtractor(torch.nn.Module):
     def __init__(self):
         super().__init__()
         # Use Convolutional Filter to Extract Edges
-        self.f1 = torch.nn.Conv2d(1, 4, (3, 3), padding_mode="replicate", padding=(3, 3), bias=False)
+        self.f1 = torch.nn.Conv2d(
+            1, 4, (3, 3), padding_mode="replicate", padding=(3, 3), bias=False
+        )
         self.f1.weight[:, :, :, :] = 0
         # 0  0  0
         # 0  1 -1
@@ -53,7 +55,9 @@ class SegmentExtractor(torch.nn.Module):
 
         # Shifting the filter allows to index the left and right segment of a bordered
         left_idx = torch.cat([seg[0, 0, boundary_mask[0]], seg[0, 0, boundary_mask[2]]])
-        right_idx = torch.cat([seg[0, 0, boundary_mask[1]], seg[0, 0, boundary_mask[3]]])
+        right_idx = torch.cat(
+            [seg[0, 0, boundary_mask[1]], seg[0, 0, boundary_mask[3]]]
+        )
 
         # Create adjacency_list based on the given pairs (crucial to use float64 here)
         div = seg.max() + 1

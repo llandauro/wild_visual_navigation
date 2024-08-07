@@ -1,6 +1,10 @@
 from wild_visual_navigation.feature_extractor import FeatureExtractor
 from wild_visual_navigation.visu import get_img_from_fig
-from wild_visual_navigation.utils.testing import load_test_image, get_dino_transform, make_results_folder
+from wild_visual_navigation.utils.testing import (
+    load_test_image,
+    get_dino_transform,
+    make_results_folder,
+)
 from os.path import join
 from pytictac import Timer
 import matplotlib.pyplot as plt
@@ -14,14 +18,21 @@ def test_feature_extractor():
     feature_types = ["dino", "dinov2", "stego"]
     backbone_types = ["vit_small", "vit_base"]  # "vit_small_reg", "vit_base_reg"]
 
-    for seg_type, feat_type, back_type in itertools.product(segmentation_types, feature_types, backbone_types):
+    for seg_type, feat_type, back_type in itertools.product(
+        segmentation_types, feature_types, backbone_types
+    ):
         if seg_type == "stego" and feat_type != "stego":
             continue
 
-        with Timer(f"Running seg [{seg_type}], feat [{feat_type}], backbone [{back_type}]"):
+        with Timer(
+            f"Running seg [{seg_type}], feat [{feat_type}], backbone [{back_type}]"
+        ):
             try:
                 fe = FeatureExtractor(
-                    device, segmentation_type=seg_type, feature_type=feat_type, backbone_type=back_type
+                    device,
+                    segmentation_type=seg_type,
+                    feature_type=feat_type,
+                    backbone_type=back_type,
                 )
             except Exception:
                 print("Not available")

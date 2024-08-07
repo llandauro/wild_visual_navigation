@@ -8,28 +8,56 @@ class MetricLogger(torch.nn.Module):
         self.log_roc_image = log_roc_image
         modes = ["train_metric", "test_metric", "val_metric"]
         # SEGMENT SPACE
-        self.roc_gt_seg = torch.nn.ModuleDict({m: ROC(task="binary", thresholds=5000) for m in modes})
-        self.roc_self_seg = torch.nn.ModuleDict({m: ROC(task="binary", thresholds=5000) for m in modes})
-        self.auroc_gt_seg = torch.nn.ModuleDict({m: AUROC(task="binary") for m in modes})
-        self.auroc_self_seg = torch.nn.ModuleDict({m: AUROC(task="binary") for m in modes})
+        self.roc_gt_seg = torch.nn.ModuleDict(
+            {m: ROC(task="binary", thresholds=5000) for m in modes}
+        )
+        self.roc_self_seg = torch.nn.ModuleDict(
+            {m: ROC(task="binary", thresholds=5000) for m in modes}
+        )
+        self.auroc_gt_seg = torch.nn.ModuleDict(
+            {m: AUROC(task="binary") for m in modes}
+        )
+        self.auroc_self_seg = torch.nn.ModuleDict(
+            {m: AUROC(task="binary") for m in modes}
+        )
 
         # IMAGE SPACE
         if self.log_roc_image:
             # ROC
-            self.roc_gt_image = torch.nn.ModuleDict({m: ROC(task="binary", thresholds=5000) for m in modes})
-            self.roc_self_image = torch.nn.ModuleDict({m: ROC(task="binary", thresholds=5000) for m in modes})
+            self.roc_gt_image = torch.nn.ModuleDict(
+                {m: ROC(task="binary", thresholds=5000) for m in modes}
+            )
+            self.roc_self_image = torch.nn.ModuleDict(
+                {m: ROC(task="binary", thresholds=5000) for m in modes}
+            )
         # AUROC
-        self.auroc_gt_image = torch.nn.ModuleDict({m: AUROC(task="binary") for m in modes})
-        self.auroc_self_image = torch.nn.ModuleDict({m: AUROC(task="binary") for m in modes})
+        self.auroc_gt_image = torch.nn.ModuleDict(
+            {m: AUROC(task="binary") for m in modes}
+        )
+        self.auroc_self_image = torch.nn.ModuleDict(
+            {m: AUROC(task="binary") for m in modes}
+        )
         # AUROC ANOMALY
-        self.auroc_anomaly_gt_image = torch.nn.ModuleDict({m: AUROC(task="binary") for m in modes})
-        self.auroc_anomaly_self_image = torch.nn.ModuleDict({m: AUROC(task="binary") for m in modes})
+        self.auroc_anomaly_gt_image = torch.nn.ModuleDict(
+            {m: AUROC(task="binary") for m in modes}
+        )
+        self.auroc_anomaly_self_image = torch.nn.ModuleDict(
+            {m: AUROC(task="binary") for m in modes}
+        )
         # ACC
-        self.acc_gt_image = torch.nn.ModuleDict({m: Accuracy(task="binary") for m in modes})
-        self.acc_self_image = torch.nn.ModuleDict({m: Accuracy(task="binary") for m in modes})
+        self.acc_gt_image = torch.nn.ModuleDict(
+            {m: Accuracy(task="binary") for m in modes}
+        )
+        self.acc_self_image = torch.nn.ModuleDict(
+            {m: Accuracy(task="binary") for m in modes}
+        )
         # ACC ANOMALY
-        self.acc_anomaly_gt_image = torch.nn.ModuleDict({m: Accuracy(task="binary") for m in modes})
-        self.acc_anomaly_self_image = torch.nn.ModuleDict({m: Accuracy(task="binary") for m in modes})
+        self.acc_anomaly_gt_image = torch.nn.ModuleDict(
+            {m: Accuracy(task="binary") for m in modes}
+        )
+        self.acc_anomaly_self_image = torch.nn.ModuleDict(
+            {m: Accuracy(task="binary") for m in modes}
+        )
         self.log_handel = log_handel
 
     @torch.no_grad()
@@ -98,7 +126,9 @@ class MetricLogger(torch.nn.Module):
         )
 
         # GT
-        self.acc_gt_image[mode](preds=bp > threshold, target=graph.label.type(torch.long))
+        self.acc_gt_image[mode](
+            preds=bp > threshold, target=graph.label.type(torch.long)
+        )
         self.acc_self_image[mode](preds=bp > threshold, target=bpro.type(torch.long))
 
         self.log_handel(
@@ -132,8 +162,12 @@ class MetricLogger(torch.nn.Module):
         bpro = graph.y[seg_pixel_index].reshape(BS, H, W)
         buffer_conf = confidence[seg_pixel_index].reshape(BS, H, W)
 
-        self.auroc_anomaly_gt_image[mode](preds=buffer_conf, target=bpro.type(torch.long))
-        self.auroc_anomaly_self_image[mode](preds=buffer_conf, target=graph.label.type(torch.long))
+        self.auroc_anomaly_gt_image[mode](
+            preds=buffer_conf, target=bpro.type(torch.long)
+        )
+        self.auroc_anomaly_self_image[mode](
+            preds=buffer_conf, target=graph.label.type(torch.long)
+        )
         self.log_handel(
             f"{mode}_auroc_anomaly_gt_image",
             self.auroc_anomaly_gt_image[mode],
@@ -149,8 +183,12 @@ class MetricLogger(torch.nn.Module):
             batch_size=BS,
         )
 
-        self.acc_anomaly_gt_image[mode](preds=buffer_conf, target=graph.label.type(torch.long))
-        self.acc_anomaly_self_image[mode](preds=buffer_conf, target=bpro.type(torch.long))
+        self.acc_anomaly_gt_image[mode](
+            preds=buffer_conf, target=graph.label.type(torch.long)
+        )
+        self.acc_anomaly_self_image[mode](
+            preds=buffer_conf, target=bpro.type(torch.long)
+        )
         self.log_handel(
             f"{mode}_acc_anomaly_gt_image",
             self.acc_anomaly_gt_image[mode],
@@ -178,7 +216,9 @@ class MetricLogger(torch.nn.Module):
 
         # generate supervision label
         if self.log_roc_image:
-            roc_self_image = [a.cpu().numpy() for a in self.roc_self_image[mode].compute()]
+            roc_self_image = [
+                a.cpu().numpy() for a in self.roc_self_image[mode].compute()
+            ]
         else:
             roc_self_image = [None, None, None]
         auroc_self_image = self.auroc_self_image[mode].compute().item()
@@ -188,12 +228,20 @@ class MetricLogger(torch.nn.Module):
             f"{mo}_roc_self_image": roc_self_image,
             f"{mo}_auroc_gt_image": auroc_gt_image,
             f"{mo}_auroc_self_image": auroc_self_image,
-            f"{mo}_auroc_anomaly_gt_image": self.auroc_anomaly_gt_image[mode].compute().item(),
-            f"{mo}_auroc_anomaly_self_image": self.auroc_anomaly_self_image[mode].compute().item(),
+            f"{mo}_auroc_anomaly_gt_image": self.auroc_anomaly_gt_image[mode]
+            .compute()
+            .item(),
+            f"{mo}_auroc_anomaly_self_image": self.auroc_anomaly_self_image[mode]
+            .compute()
+            .item(),
             f"{mo}_acc_gt_image": self.acc_gt_image[mode].compute().item(),
             f"{mo}_acc_self_image": self.acc_self_image[mode].compute().item(),
-            f"{mo}_acc_anomaly_gt_image": self.acc_anomaly_gt_image[mode].compute().item(),
-            f"{mo}_acc_anomaly_self_image": self.acc_anomaly_self_image[mode].compute().item(),
+            f"{mo}_acc_anomaly_gt_image": self.acc_anomaly_gt_image[mode]
+            .compute()
+            .item(),
+            f"{mo}_acc_anomaly_self_image": self.acc_anomaly_self_image[mode]
+            .compute()
+            .item(),
         }
         return res
 

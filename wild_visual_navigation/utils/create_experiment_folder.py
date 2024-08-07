@@ -37,7 +37,9 @@ def create_experiment_folder(exp: ExperimentParams) -> str:
         timestamp = datetime.datetime.now().replace(microsecond=0).isoformat()
         model_path = os.path.join(exp.env.results, name)
         p = model_path.split("/")
-        model_path = os.path.join("/", *p[:-1], str(timestamp).replace(":", "-") + "_" + p[-1])
+        model_path = os.path.join(
+            "/", *p[:-1], str(timestamp).replace(":", "-") + "_" + p[-1]
+        )
     else:
         model_path = os.path.join(exp.env.results, name)
         shutil.rmtree(model_path, ignore_errors=True)

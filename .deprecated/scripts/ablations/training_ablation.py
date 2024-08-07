@@ -32,7 +32,9 @@ if __name__ == "__main__":
         default="network",
         help="Folder containing the ablation configs.",
     )
-    parser.add_argument("--number_training_runs", type=int, default=1, help="Number of run per config.")
+    parser.add_argument(
+        "--number_training_runs", type=int, default=1, help="Number of run per config."
+    )
     parser.add_argument(
         "--test_all_datasets",
         dest="test_all_datasets",
@@ -51,7 +53,9 @@ if __name__ == "__main__":
         type=str,
         help="List of scenes seperated by comma without spaces.",
     )
-    parser.add_argument("--special_key", type=str, default="", help="Test on all datasets.")
+    parser.add_argument(
+        "--special_key", type=str, default="", help="Test on all datasets."
+    )
     parser.set_defaults(test_all_datasets=False)
     parser.set_defaults(store_final_model=False)
 
@@ -97,7 +101,9 @@ if __name__ == "__main__":
     Path(model_path).mkdir(parents=True, exist_ok=True)
 
     directory = Path(os.path.join(WVN_ROOT_DIR, f"cfg/exp/ablation/{folder}"))
-    cfg_paths = [str(p) for p in directory.rglob("*.yaml") if str(p).find("template") == -1]
+    cfg_paths = [
+        str(p) for p in directory.rglob("*.yaml") if str(p).find("template") == -1
+    ]
     # Train model and get test results for every epoch.
     results_epoch = {}
     j = 0
@@ -119,7 +125,9 @@ if __name__ == "__main__":
 
                 if args.store_final_model:
                     p_ = p.split("/")[-1][:-5]
-                    p_ = os.path.join(exp.general.model_path, f"model_{p_}_{scene}_{run}.pt")
+                    p_ = os.path.join(
+                        exp.general.model_path, f"model_{p_}_{scene}_{run}.pt"
+                    )
                     torch.save(model.state_dict(), p_)
                     run_results[str(run)]["model"] = model.state_dict()
                     run_results[str(run)]["model_path"] = p_
@@ -128,7 +136,9 @@ if __name__ == "__main__":
         results_epoch[scene] = copy.deepcopy(model_results)
 
     # Store epoch output to disk.
-    p = os.path.join(exp.general.model_path, f"{folder}_ablation_test_results{special_key}.pkl")
+    p = os.path.join(
+        exp.general.model_path, f"{folder}_ablation_test_results{special_key}.pkl"
+    )
 
     try:
         os.remove(p)

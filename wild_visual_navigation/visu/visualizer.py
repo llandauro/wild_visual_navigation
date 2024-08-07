@@ -42,7 +42,11 @@ class LearningVisualizer:
         self._epoch = epoch
         self._store = store
         self._log = log
-        self._c_maps = {"RdYlBu": np.array([np.uint8(np.array(c) * 255) for c in sns.color_palette("RdYlBu", 256)])}
+        self._c_maps = {
+            "RdYlBu": np.array(
+                [np.uint8(np.array(c) * 255) for c in sns.color_palette("RdYlBu", 256)]
+            )
+        }
         if not (p_visu is None):
             if not os.path.exists(self._p_visu):
                 os.makedirs(self._p_visu)
@@ -70,7 +74,9 @@ class LearningVisualizer:
         return np.concatenate(imgs, axis=1)
 
     @image_functionality
-    def plot_roc(self, x, y, y_lower=None, y_upper=None, title=None, y_tag=None, **kwargs):
+    def plot_roc(
+        self, x, y, y_lower=None, y_upper=None, title=None, y_tag=None, **kwargs
+    ):
         if type(x) is not list:
             x = [x]
             y = [y]
@@ -96,7 +102,9 @@ class LearningVisualizer:
         assert len(y_tag) == l
 
         # not used
-        for j, (_x, _y, _y_lower, _y_upper, _y_tag) in enumerate(zip(x, y, y_lower, y_upper, y_tag)):
+        for j, (_x, _y, _y_lower, _y_upper, _y_tag) in enumerate(
+            zip(x, y, y_lower, y_upper, y_tag)
+        ):
             k = [k for k in paper_colors_rgb_f.keys()][j]
 
             ax.plot(_x, _y, label=_y_tag, color=paper_colors_rgb_f[k])
@@ -111,7 +119,9 @@ class LearningVisualizer:
                     alpha=0.2,
                 )
 
-        ax.plot(np.linspace(0, 1, 100), np.linspace(0, 1, 100), linestyle="--", color="gray")
+        ax.plot(
+            np.linspace(0, 1, 100), np.linspace(0, 1, 100), linestyle="--", color="gray"
+        )
         ax.set_xlabel("False positive rate")
         ax.set_ylabel("True positive rate")
         ax.spines["top"].set_visible(False)
@@ -133,7 +143,9 @@ class LearningVisualizer:
         fig, ax = plt.subplots(figsize=(3, 3))
         ax.hist(np_x, bins, alpha=0.5, color="k")
         ax.hist(np_x_pos, bins, alpha=0.5, color="b")
-        ax.plot(bins, np.exp(-((bins - mean) ** 2) / (2 * std**2)), color="b", linewidth=3)
+        ax.plot(
+            bins, np.exp(-((bins - mean) ** 2) / (2 * std**2)), color="b", linewidth=3
+        )
         res = np.array(get_img_from_fig(fig))
         plt.close()
         return res
@@ -194,7 +206,9 @@ class LearningVisualizer:
         supervision_mask[mask] = 0
         mask_img = self.plot_detectron(
             node.image.clone(),
-            torch.round(torch.clamp(255 * supervision_mask[0], 0, 255)).type(torch.long),
+            torch.round(torch.clamp(255 * supervision_mask[0], 0, 255)).type(
+                torch.long
+            ),
             max_seg=256,
             colormap="RdYlBu",
             overlay_mask=mask[0],
@@ -231,7 +245,9 @@ class LearningVisualizer:
             boundary_seg=seg,
             draw_bound=False,
         )
-        i2 = (torch.from_numpy(i1).type(torch.float32) / 255).permute(2, 0, 1)  # noqa: F841
+        i2 = (torch.from_numpy(i1).type(torch.float32) / 255).permute(
+            2, 0, 1
+        )  # noqa: F841
 
         # Plot Graph on Image
         return i1
@@ -290,7 +306,9 @@ class LearningVisualizer:
             node_validity = [True] * adjacency_list.shape[1]
 
         if colormap not in self._c_maps:
-            self._c_maps[colormap] = np.array([np.uint8(np.array(c) * 255) for c in sns.color_palette(colormap, 256)])
+            self._c_maps[colormap] = np.array(
+                [np.uint8(np.array(c) * 255) for c in sns.color_palette(colormap, 256)]
+            )
         c_map = self._c_maps[colormap]
 
         for i in range(adjacency_list.shape[1]):
@@ -300,9 +318,13 @@ class LearningVisualizer:
 
         for i in range(center.shape[0]):
             params = center[i].tolist()
-            params = [p - elipse_size for p in params] + [p + elipse_size for p in params]
+            params = [p - elipse_size for p in params] + [
+                p + elipse_size for p in params
+            ]
             if node_validity[i] or colorize_invalid_centers:
-                img_draw.ellipse(params, width=10, fill=tuple(c_map[prediction[i]].tolist()))
+                img_draw.ellipse(
+                    params, width=10, fill=tuple(c_map[prediction[i]].tolist())
+                )
             else:
                 img_draw.ellipse(params, width=1, fill=(127, 127, 127))
 
@@ -324,7 +346,9 @@ class LearningVisualizer:
         **kwargs,
     ):
         img = self.plot_image(img, not_log=True)
-        seg_img = self.plot_segmentation(seg.clone(), max_seg=max_seg, colormap=colormap, store=False, not_log=True)
+        seg_img = self.plot_segmentation(
+            seg.clone(), max_seg=max_seg, colormap=colormap, store=False, not_log=True
+        )
 
         H, W = img.shape[:2]
         back = np.zeros((H, W, 4))
@@ -340,7 +364,9 @@ class LearningVisualizer:
                 pass
             fore[overlay_mask] = 0
 
-        img_new = Image.alpha_composite(Image.fromarray(np.uint8(back)), Image.fromarray(np.uint8(fore)))
+        img_new = Image.alpha_composite(
+            Image.fromarray(np.uint8(back)), Image.fromarray(np.uint8(fore))
+        )
         img_rgb = img_new.convert("RGB")
 
         if draw_bound:
@@ -352,13 +378,17 @@ class LearningVisualizer:
             if seg.shape[0] == 1:
                 seg = seg[0]
 
-            mask = skimage.segmentation.mark_boundaries(np.array(img_rgb), seg, color=(255, 255, 255))
+            mask = skimage.segmentation.mark_boundaries(
+                np.array(img_rgb), seg, color=(255, 255, 255)
+            )
             mask = mask.sum(axis=2)
             m = mask == mask.max()
             fore = np.zeros((H, W, 4))
             fore[m, :] = [255, 255, 255, boundary_alpha]
 
-            img_new = Image.alpha_composite(img_new.convert("RGBA"), Image.fromarray(np.uint8(fore)))
+            img_new = Image.alpha_composite(
+                img_new.convert("RGBA"), Image.fromarray(np.uint8(fore))
+            )
         img_new = img_new.convert("RGB")
 
         return np.uint8(img_new)
@@ -416,13 +446,17 @@ class LearningVisualizer:
                 pass
             fore[overlay_mask] = 0
 
-        img_new = Image.alpha_composite(Image.fromarray(np.uint8(back)), Image.fromarray(np.uint8(fore)))
+        img_new = Image.alpha_composite(
+            Image.fromarray(np.uint8(back)), Image.fromarray(np.uint8(fore))
+        )
         img_new = img_new.convert("RGB")
         return np.uint8(img_new)
 
     @accumulate_time
     @image_functionality
-    def plot_graph_result(self, graph, center, img, seg, res, use_seg=False, colormap="RdYlBu", **kwargs):
+    def plot_graph_result(
+        self, graph, center, img, seg, res, use_seg=False, colormap="RdYlBu", **kwargs
+    ):
         """Plot Graph GT and Predtion on Image
 
         Args:
@@ -468,9 +502,13 @@ class LearningVisualizer:
 
         for i in range(center.shape[0]):
             params = center[i].tolist()
-            params = [p - elipse_size for p in params] + [p + elipse_size for p in params]
+            params = [p - elipse_size for p in params] + [
+                p + elipse_size for p in params
+            ]
             img_draw.ellipse(params, width=10, fill=tuple(c_map[y[i]].tolist()))
-            img_pred_draw.ellipse(params, width=10, fill=tuple(c_map[y_pred[i]].tolist()))
+            img_pred_draw.ellipse(
+                params, width=10, fill=tuple(c_map[y_pred[i]].tolist())
+            )
             if use_seg:
                 seg_draw.ellipse(params, width=10, fill=tuple(c_map[y[i]].tolist()))
 
@@ -499,7 +537,9 @@ class LearningVisualizer:
         if seg.dtype == bool:
             max_seg = 2
         if isinstance(colormap, str):
-            c_map = torch.tensor(sns.color_palette(colormap, max_seg), device=seg.device)
+            c_map = torch.tensor(
+                sns.color_palette(colormap, max_seg), device=seg.device
+            )
         else:
             c_map = colormap
         c_map = (c_map * 255).type(torch.uint8)
@@ -538,7 +578,9 @@ class LearningVisualizer:
 
     @accumulate_time
     @image_functionality
-    def plot_optical_flow(self, flow: torch.Tensor, img1: torch.Tensor, img2: torch.Tensor, s=10, **kwargs):
+    def plot_optical_flow(
+        self, flow: torch.Tensor, img1: torch.Tensor, img2: torch.Tensor, s=10, **kwargs
+    ):
         """Draws line connection between to images based on estimated flow
 
         Args:
@@ -710,9 +752,13 @@ if __name__ == "__main__":
     not_log = True
     store = True
     with Timer("plot_segmentation"):
-        visu.plot_segmentation(seg=seg, store=store, max_seg=ele, tag="3", not_log=not_log)
+        visu.plot_segmentation(
+            seg=seg, store=store, max_seg=ele, tag="3", not_log=not_log
+        )
     with Timer("plot_segmentation quick"):
-        visu.plot_segmentation_quick(seg, store=store, max_seg=ele, tag="3_quick", not_log=not_log)
+        visu.plot_segmentation_quick(
+            seg, store=store, max_seg=ele, tag="3_quick", not_log=not_log
+        )
 
     # seg = np.random.randint( 0, 100, (400,400) )
     # store = False

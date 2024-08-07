@@ -4,7 +4,9 @@ import torch
 import torch.nn.functional as F
 
 
-def generate_traversability_test_signal(N=500, T=10, events=[3, 8], event_length=0.5, device=torch.device("cpu")):
+def generate_traversability_test_signal(
+    N=500, T=10, events=[3, 8], event_length=0.5, device=torch.device("cpu")
+):
     t = torch.linspace(0, T, N, device=device)
     x = torch.zeros((N))
 
@@ -32,7 +34,9 @@ def test_confidence_generator():
     sigma_factor = 0.5
 
     # Design a long 1D traversability signal
-    t, x = generate_traversability_test_signal(N=N, T=30, events=[3, 12], event_length=[5.0, 10], device=device)
+    t, x = generate_traversability_test_signal(
+        N=N, T=30, events=[3, 12], event_length=[5.0, 10], device=device
+    )
 
     # Noises
     # Salt and pepper
@@ -41,7 +45,9 @@ def test_confidence_generator():
     max_v = 0.1 - min_v
     salt_pepper_noise[salt_pepper_noise >= max_v] = 1.0
     salt_pepper_noise[salt_pepper_noise <= min_v] = -1.0
-    salt_pepper_noise[torch.logical_and(salt_pepper_noise > min_v, salt_pepper_noise < max_v)] = 0.0
+    salt_pepper_noise[
+        torch.logical_and(salt_pepper_noise > min_v, salt_pepper_noise < max_v)
+    ] = 0.0
 
     # White noise
     white_noise = 0.1 * (torch.rand(x.shape, device=device) - 0.5)
@@ -73,7 +79,9 @@ def test_confidence_generator():
     conf = torch.zeros((3, N), device=device)
 
     # Naive confidence generator
-    cg = ConfidenceGenerator(std_factor=sigma_factor, method="latest_measurement").to(device)
+    cg = ConfidenceGenerator(std_factor=sigma_factor, method="latest_measurement").to(
+        device
+    )
 
     # Run
     for i in range(x.shape[0]):
@@ -86,7 +94,9 @@ def test_confidence_generator():
         if is_pos:
             c = cg.update(s, s[None], step=i)
         else:
-            c = cg.update(s, torch.tensor([]), step=i)  # masking tensors returns empty tensor
+            c = cg.update(
+                s, torch.tensor([]), step=i
+            )  # masking tensors returns empty tensor
 
         # Get mean and confidence
         loss_mean[0, i] = cg.mean[0]

@@ -19,7 +19,9 @@ for d in perguia_dataset:
 for d in perguia_dataset:
     p = [
         str(s).replace(ROOT_DIR + "/", "")
-        for s in Path(ROOT_DIR, "wvn_output", d["name"].replace("mission_data/", ""), "image").rglob("*.pt")
+        for s in Path(
+            ROOT_DIR, "wvn_output", d["name"].replace("mission_data/", ""), "image"
+        ).rglob("*.pt")
     ]
     if d["mode"] == "train":
         p.sort()
@@ -28,11 +30,15 @@ for d in perguia_dataset:
         s = len(p)
         print(s)
 
-        with open(os.path.join(ROOT_DIR, "wvn_output/split", f"{env}_train.txt"), "w") as output:
+        with open(
+            os.path.join(ROOT_DIR, "wvn_output/split", f"{env}_train.txt"), "w"
+        ) as output:
             for k in p[1 : int(s * percentage)]:
                 output.write(k + "\n")
 
-        with open(os.path.join(ROOT_DIR, "wvn_output/split", f"{env}_val.txt"), "w") as output:
+        with open(
+            os.path.join(ROOT_DIR, "wvn_output/split", f"{env}_val.txt"), "w"
+        ) as output:
             for k in p[int(s * percentage) + 1 :]:
                 output.write(k + "\n")
 
@@ -41,7 +47,9 @@ for d in perguia_dataset:
         scenes[d["env"]] += p
 
 for k, v in scenes.items():
-    with open(os.path.join(ROOT_DIR, "wvn_output/split", f"{k}_test.txt"), "w") as output:
+    with open(
+        os.path.join(ROOT_DIR, "wvn_output/split", f"{k}_test.txt"), "w"
+    ) as output:
         for _k in v[::every_n_test]:
             # DONT WANT TO HAVE FRAME 0 given optical flow
             if _k == 0:

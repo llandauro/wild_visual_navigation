@@ -13,13 +13,15 @@ from pathlib import Path
 
 p = [
     str(s)
-    for s in Path("/media/Data/Datasets/2022_Perugia/wvn_output/day3/2022-05-12T11:56:13_mission_0_day_3/image").rglob(
-        "*.pt"
-    )
+    for s in Path(
+        "/media/Data/Datasets/2022_Perugia/wvn_output/day3/2022-05-12T11:56:13_mission_0_day_3/image"
+    ).rglob("*.pt")
 ]
 p.sort()
 
-visu = LearningVisualizer(os.path.join(WVN_ROOT_DIR, "results/visu_dataset"), store=False)
+visu = LearningVisualizer(
+    os.path.join(WVN_ROOT_DIR, "results/visu_dataset"), store=False
+)
 # seg = (torch.nan_to_num(supervision_mask.nanmean(axis=0) ))
 # res = visu.plot_detectron_cont(image, seg, max_seg = 1, alpha=0.5, tag = "one")
 

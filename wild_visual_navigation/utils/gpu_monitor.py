@@ -133,7 +133,9 @@ class SystemLevelContextGpuMonitor:
             and hasattr(self.parent, "slg_pid")
         ):
             if self.parent.slg_enabled:
-                self.mem_start = gpu_memory_query(self.parent.slg_device, self.parent.slg_pid)
+                self.mem_start = gpu_memory_query(
+                    self.parent.slg_device, self.parent.slg_pid
+                )
 
     def __exit__(self, exc_type, exc_value, exc_tb):
         if (
@@ -147,24 +149,40 @@ class SystemLevelContextGpuMonitor:
         else:
             return
 
-        if hasattr(self.parent, "slg_enabled") and hasattr(self.parent, "slg_store_samples"):
+        if hasattr(self.parent, "slg_enabled") and hasattr(
+            self.parent, "slg_store_samples"
+        ):
             if self.parent.slg_enabled and self.parent.slg_store_samples:
                 # Check if we enabled the option to store samples
                 if not hasattr(self.parent, "slg_memory_samples"):
                     self.parent.slg_memory_samples = {}
 
-                if not hasattr(self.parent, "slg_step") or not hasattr(self.parent, "slg_time"):
+                if not hasattr(self.parent, "slg_step") or not hasattr(
+                    self.parent, "slg_time"
+                ):
                     # Wait until the step and step time is initialized
                     return
 
-                store_sample = self.parent.slg_step % self.parent.slg_skip_n_samples == 0
+                store_sample = (
+                    self.parent.slg_step % self.parent.slg_skip_n_samples == 0
+                )
 
                 if self.name in self.parent.slg_memory_samples and store_sample:
-                    self.parent.slg_memory_samples[self.name]["step"].append(self.parent.slg_step)
-                    self.parent.slg_memory_samples[self.name]["time"].append(self.parent.slg_time)
-                    self.parent.slg_memory_samples[self.name]["ini_memory"].append(self.mem_start)
-                    self.parent.slg_memory_samples[self.name]["end_memory"].append(mem_end)
-                    self.parent.slg_memory_samples[self.name]["delta_memory"].append(mem_delta)
+                    self.parent.slg_memory_samples[self.name]["step"].append(
+                        self.parent.slg_step
+                    )
+                    self.parent.slg_memory_samples[self.name]["time"].append(
+                        self.parent.slg_time
+                    )
+                    self.parent.slg_memory_samples[self.name]["ini_memory"].append(
+                        self.mem_start
+                    )
+                    self.parent.slg_memory_samples[self.name]["end_memory"].append(
+                        mem_end
+                    )
+                    self.parent.slg_memory_samples[self.name]["delta_memory"].append(
+                        mem_delta
+                    )
                 else:
                     self.parent.slg_memory_samples[self.name] = {
                         "step": [self.parent.slg_step],

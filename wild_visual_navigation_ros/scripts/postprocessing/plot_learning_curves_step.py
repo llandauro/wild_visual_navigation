@@ -29,7 +29,9 @@ plot_height = 4 * cm
 plt.rcParams["font.size"] = 8
 n_colors = 10
 
-fig, ax = plt.subplots(1, 1, figsize=(plot_width, plot_height), constrained_layout=False, dpi=300)
+fig, ax = plt.subplots(
+    1, 1, figsize=(plot_width, plot_height), constrained_layout=False, dpi=300
+)
 # Axes
 ax.set_axisbelow(True)
 # ax.set_aspect("equal")

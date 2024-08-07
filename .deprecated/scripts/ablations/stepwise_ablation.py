@@ -18,12 +18,18 @@ if __name__ == "__main__":
     exp = ExperimentParams()
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("--output_key", type=str, default="learning_curve", help="Name of the run.")
-    parser.add_argument("--number_training_runs", type=int, default=5, help="Number of run per config.")
+    parser.add_argument(
+        "--output_key", type=str, default="learning_curve", help="Name of the run."
+    )
+    parser.add_argument(
+        "--number_training_runs", type=int, default=5, help="Number of run per config."
+    )
     parser.add_argument("--data_start_percentage", type=int, default=100)
     parser.add_argument("--data_stop_percentage", type=int, default=100)
     parser.add_argument("--data_percentage_increment", type=int, default=10)
-    parser.add_argument("--test_all_datasets", dest="test_all_datasets", action="store_true", help="")
+    parser.add_argument(
+        "--test_all_datasets", dest="test_all_datasets", action="store_true", help=""
+    )
     parser.set_defaults(test_all_datasets=False)
     parser.add_argument(
         "--scenes",
@@ -66,7 +72,9 @@ if __name__ == "__main__":
     exp.visu.test = 0
     exp.verify_params()
     ws = os.environ.get("ENV_WORKSTATION_NAME", "default")
-    exp.general.model_path = os.path.join(exp.env.results, f"ablations/{output_key}_{ws}")
+    exp.general.model_path = os.path.join(
+        exp.env.results, f"ablations/{output_key}_{ws}"
+    )
 
     # If check_val_every_n_epoch in the current setting the test dataloader is used for validation.
     # All results during validation are stored and returned by the training routine.
@@ -84,7 +92,9 @@ if __name__ == "__main__":
             data_percentage_increment,
         )
 
-        with open(os.path.join(exp.general.model_path, "experiment_params.pkl"), "wb") as handle:
+        with open(
+            os.path.join(exp.general.model_path, "experiment_params.pkl"), "wb"
+        ) as handle:
             pickle.dump(exp, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
         # Train model in various configurations and the validation results per epoch are returned in results_epoch.
@@ -96,11 +106,15 @@ if __name__ == "__main__":
                 exp.ablation_data_module.training_data_percentage = percentage
                 run_results = {}
                 for run in range(number_training_runs):
-                    exp.general.store_model_every_n_steps_key = f"ablation_{output_key}_{scene}_{percentage}_{run}"
+                    exp.general.store_model_every_n_steps_key = (
+                        f"ablation_{output_key}_{scene}_{percentage}_{run}"
+                    )
                     res, _ = training_routine(exp, seed=run)
                     run_results[f"run_{run}"] = copy.deepcopy(res)
                     torch.cuda.empty_cache()
-                percentage_results[f"percentage_{percentage}"] = copy.deepcopy(run_results)
+                percentage_results[f"percentage_{percentage}"] = copy.deepcopy(
+                    run_results
+                )
             results_epoch[scene] = copy.deepcopy(percentage_results)
 
         # Store epoch output to disk.

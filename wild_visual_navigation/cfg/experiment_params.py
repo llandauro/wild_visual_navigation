@@ -12,7 +12,9 @@ from wild_visual_navigation.cfg import get_global_env_params, GlobalEnvironmentP
 
 @dataclass
 class ExperimentParams:
-    env: GlobalEnvironmentParams = get_global_env_params(os.environ.get("ENV_WORKSTATION_NAME", "default"))
+    env: GlobalEnvironmentParams = get_global_env_params(
+        os.environ.get("ENV_WORKSTATION_NAME", "default")
+    )
 
     @dataclass
     class GeneralParams:

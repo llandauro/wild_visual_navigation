@@ -15,10 +15,14 @@ from cv_bridge import CvBridge
 
 class ImageConverter:
     def __init__(self, cam):
-        self.image_pub = rospy.Publisher(f"/alphasense_driver_ros/{cam}_corrected", Image, queue_size=10)
+        self.image_pub = rospy.Publisher(
+            f"/alphasense_driver_ros/{cam}_corrected", Image, queue_size=10
+        )
 
         self.bridge = CvBridge()
-        self.image_sub = rospy.Subscriber(f"/alphasense_driver_ros/{cam}", Image, self.callback)
+        self.image_sub = rospy.Subscriber(
+            f"/alphasense_driver_ros/{cam}", Image, self.callback
+        )
 
     def callback(self, msg):
         msg.encoding = "bayer_gbrg8"

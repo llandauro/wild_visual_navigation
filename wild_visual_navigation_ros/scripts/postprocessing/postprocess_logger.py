@@ -83,25 +83,46 @@ class OfflineLogger:
         )
 
         # Dump parameters
-        with open(f"{self._output_path}/wvn_feature_extractor_params.yaml", "w") as outfile:
-            yaml.dump(rospy.get_param("/wvn_feature_extractor_node"), outfile, default_flow_style=False)
+        with open(
+            f"{self._output_path}/wvn_feature_extractor_params.yaml", "w"
+        ) as outfile:
+            yaml.dump(
+                rospy.get_param("/wvn_feature_extractor_node"),
+                outfile,
+                default_flow_style=False,
+            )
 
         # Initialize subscribers
         self._image_sub = rospy.Subscriber(
-            self._image_topic, Image, self._image_callback, callback_args="image", queue_size=1
+            self._image_topic,
+            Image,
+            self._image_callback,
+            callback_args="image",
+            queue_size=1,
         )
         self._trav_sub = rospy.Subscriber(
-            self._trav_topic, Image, self._image_callback, callback_args="trav", queue_size=1
+            self._trav_topic,
+            Image,
+            self._image_callback,
+            callback_args="trav",
+            queue_size=1,
         )
-        self._state_sub = rospy.Subscriber(self._state_topic, SystemState, self._state_callback, queue_size=1)
+        self._state_sub = rospy.Subscriber(
+            self._state_topic, SystemState, self._state_callback, queue_size=1
+        )
 
     def _read_params(self):
         self._mission_name = rospy.get_param("~mission_name", "default")
-        self._image_topic = rospy.get_param("~image_topic", "/wild_visual_navigation_node/front/image_input")
-        self._trav_topic = rospy.get_param(
-            "~trav_topic", "/wild_visual_navigation_visu_traversability/traversability_overlayed"
+        self._image_topic = rospy.get_param(
+            "~image_topic", "/wild_visual_navigation_node/front/image_input"
         )
-        self._state_topic = rospy.get_param("~state_topic", "/wild_visual_navigation_node/system_state")
+        self._trav_topic = rospy.get_param(
+            "~trav_topic",
+            "/wild_visual_navigation_visu_traversability/traversability_overlayed",
+        )
+        self._state_topic = rospy.get_param(
+            "~state_topic", "/wild_visual_navigation_node/system_state"
+        )
 
         rospy.loginfo(f"Logging mission [{self._mission_name}]")
 

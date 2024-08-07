@@ -24,7 +24,10 @@ class AnomalyLoss(nn.Module):
         super(AnomalyLoss, self).__init__()
 
         self._confidence_generator = ConfidenceGenerator(
-            std_factor=confidence_std_factor, method=method, log_enabled=log_enabled, log_folder=log_folder
+            std_factor=confidence_std_factor,
+            method=method,
+            log_enabled=log_enabled,
+            log_folder=log_folder,
         )
 
     def forward(
@@ -39,11 +42,15 @@ class AnomalyLoss(nn.Module):
         loss_aux["loss_trav"] = torch.tensor([0.0])
         loss_aux["loss_reco"] = torch.tensor([0.0])
 
-        losses = res["logprob"].sum(1) + res["log_det"]  # Sum over all channels, resulting in h*w output dimensions
+        losses = (
+            res["logprob"].sum(1) + res["log_det"]
+        )  # Sum over all channels, resulting in h*w output dimensions
 
         if update_generator:
             confidence = self._confidence_generator.update(
-                x=-losses.clone().detach(), x_positive=-losses.clone().detach(), step=step
+                x=-losses.clone().detach(),
+                x_positive=-losses.clone().detach(),
+                step=step,
             )
 
         loss_aux["confidence"] = confidence
@@ -83,7 +90,10 @@ class TraversabilityLoss(nn.Module):
             self._trav_loss_func = F.mse_loss
 
         self._confidence_generator = ConfidenceGenerator(
-            std_factor=confidence_std_factor, method=method, log_enabled=log_enabled, log_folder=log_folder
+            std_factor=confidence_std_factor,
+            method=method,
+            log_enabled=log_enabled,
+            log_folder=log_folder,
         )
 
     def reset(self):
@@ -100,7 +110,9 @@ class TraversabilityLoss(nn.Module):
     ):
         # Compute reconstruction loss
         nr_channel_reco = graph.x.shape[1]
-        loss_reco = F.mse_loss(res[:, -nr_channel_reco:], graph.x, reduction="none").mean(dim=1)
+        loss_reco = F.mse_loss(
+            res[:, -nr_channel_reco:], graph.x, reduction="none"
+        ).mean(dim=1)
 
         with torch.no_grad():
             if update_generator:
@@ -111,7 +123,9 @@ class TraversabilityLoss(nn.Module):
                     log_step=log_step,
                 )
             else:
-                confidence = self._confidence_generator.inference_without_update(x=loss_reco)
+                confidence = self._confidence_generator.inference_without_update(
+                    x=loss_reco
+                )
 
         label = graph.y[:]
         if self._trav_cross_entropy:
@@ -122,7 +136,9 @@ class TraversabilityLoss(nn.Module):
                 reduction="none",
             )
         else:
-            loss_trav_raw = self._trav_loss_func(res[:, :-nr_channel_reco].squeeze(), label, reduction="none")
+            loss_trav_raw = self._trav_loss_func(
+                res[:, :-nr_channel_reco].squeeze(), label, reduction="none"
+            )
 
         ele = graph.y_valid.shape[0]  # 400 #
         selector = torch.zeros_like(graph.y_valid)
@@ -131,12 +147,14 @@ class TraversabilityLoss(nn.Module):
         loss_trav_raw_not_labeled = loss_trav_raw[~graph.y_valid * selector]
 
         # Scale the loss
-        loss_trav_raw_not_labeled_weighted = loss_trav_raw_not_labeled * (1 - confidence)[~graph.y_valid * selector]
+        loss_trav_raw_not_labeled_weighted = (
+            loss_trav_raw_not_labeled * (1 - confidence)[~graph.y_valid * selector]
+        )
 
         if self._anomaly_balanced:
-            loss_trav_confidence = (loss_trav_raw_not_labeled_weighted.sum() + loss_trav_raw_labeled.sum()) / (
-                graph.y.shape[0]
-            )
+            loss_trav_confidence = (
+                loss_trav_raw_not_labeled_weighted.sum() + loss_trav_raw_labeled.sum()
+            ) / (graph.y.shape[0])
         else:
             loss_trav_confidence = loss_trav_raw[selector].mean()
 
@@ -144,7 +162,11 @@ class TraversabilityLoss(nn.Module):
 
         loss_reco_mean = loss_reco[graph.y_valid * selector].mean()
         # Compute total loss
-        loss = self._w_trav * loss_trav_confidence + self._w_reco * loss_reco_mean + self._w_temp * loss_temp
+        loss = (
+            self._w_trav * loss_trav_confidence
+            + self._w_reco * loss_reco_mean
+            + self._w_temp * loss_temp
+        )
 
         res_updated = res
         return (
@@ -160,5 +182,7 @@ class TraversabilityLoss(nn.Module):
         )
 
     def update_node_confidence(self, node):
-        reco_loss = F.mse_loss(node.prediction[:, 1:], node.features, reduction="none").mean(dim=1)
+        reco_loss = F.mse_loss(
+            node.prediction[:, 1:], node.features, reduction="none"
+        ).mean(dim=1)
         node.confidence = self._confidence_generator.inference_without_update(reco_loss)

@@ -23,7 +23,9 @@ class BaseNode:
 
     _name = "base_node"
 
-    def __init__(self, timestamp: float = 0.0, pose_base_in_world: torch.tensor = torch.eye(4)):
+    def __init__(
+        self, timestamp: float = 0.0, pose_base_in_world: torch.tensor = torch.eye(4)
+    ):
         assert isinstance(pose_base_in_world, torch.Tensor)
 
         self._timestamp = timestamp
@@ -57,7 +59,9 @@ class BaseNode:
 
     @classmethod
     def from_node(cls, instance):
-        return cls(timestamp=instance.timestamp, pose_base_in_world=instance.pose_base_in_world)
+        return cls(
+            timestamp=instance.timestamp, pose_base_in_world=instance.pose_base_in_world
+        )
 
     def is_valid(self):
         return True
@@ -134,7 +138,9 @@ class MissionNode(BaseNode):
         # Initialize members
         self._pose_cam_in_base = pose_cam_in_base
         self._pose_cam_in_world = (
-            self._pose_base_in_world @ self._pose_cam_in_base if pose_cam_in_world is None else pose_cam_in_world
+            self._pose_base_in_world @ self._pose_cam_in_base
+            if pose_cam_in_world is None
+            else pose_cam_in_world
         )
         self._image = image
         self._image_projector = image_projector
@@ -210,7 +216,9 @@ class MissionNode(BaseNode):
                     x=self.features[self._supervision_signal_valid],
                     edge_index=self._feature_edges,
                     y=self._supervision_signal[self._supervision_signal_valid],
-                    y_valid=self._supervision_signal_valid[self._supervision_signal_valid],
+                    y_valid=self._supervision_signal_valid[
+                        self._supervision_signal_valid
+                    ],
                 )
             else:
                 return Data(
@@ -226,7 +234,9 @@ class MissionNode(BaseNode):
                     x=self.features[self._supervision_signal_valid],
                     edge_index=self._feature_edges,
                     y=self._supervision_signal[self._supervision_signal_valid],
-                    y_valid=self._supervision_signal_valid[self._supervision_signal_valid],
+                    y_valid=self._supervision_signal_valid[
+                        self._supervision_signal_valid
+                    ],
                     x_previous=previous_node.features,
                     edge_index_previous=previous_node._feature_edges,
                 )
@@ -393,7 +403,9 @@ class MissionNode(BaseNode):
             image_overlay,
             projected_points,
             valid_points,
-        ) = self._image_projector.project_and_render(self._pose_cam_in_world[None], footprint, color)
+        ) = self._image_projector.project_and_render(
+            self._pose_cam_in_world[None], footprint, color
+        )
 
         return mask, image_overlay, projected_points, valid_points
 
@@ -414,11 +426,13 @@ class MissionNode(BaseNode):
         torch.arange(0, num_segments)[None, None]
 
         # Create array to mask by index (used to select the segments)
-        multichannel_index_mask = torch.arange(0, num_segments, device=self._feature_segments.device)[
-            None, None
-        ].expand(N, M, num_segments)
+        multichannel_index_mask = torch.arange(
+            0, num_segments, device=self._feature_segments.device
+        )[None, None].expand(N, M, num_segments)
         # Make a copy of the segments with the dimensionality of the segments, so we can split them on each channel
-        multichannel_segments = self._feature_segments[:, :, None].expand(N, M, num_segments)
+        multichannel_segments = self._feature_segments[:, :, None].expand(
+            N, M, num_segments
+        )
 
         # Create a multichannel mask that allows to associate a segment to each channel
         multichannel_segments_mask = multichannel_index_mask == multichannel_segments
@@ -426,12 +440,14 @@ class MissionNode(BaseNode):
         # Apply the mask to an expanded supervision signal and get the mean value per segment
         # First we get the number of elements per segment (stored on each channel)
         num_elements_per_segment = (
-            multichannel_segments_mask * ~torch.isnan(signal[:, :, None].expand(N, M, num_segments))
+            multichannel_segments_mask
+            * ~torch.isnan(signal[:, :, None].expand(N, M, num_segments))
         ).sum(dim=[0, 1])
         # We get the sum of all the values of the supervision signal that fall in the segment
-        signal_sum = (signal.nan_to_num(0)[:, :, None].expand(N, M, num_segments) * multichannel_segments_mask).sum(
-            dim=[0, 1]
-        )
+        signal_sum = (
+            signal.nan_to_num(0)[:, :, None].expand(N, M, num_segments)
+            * multichannel_segments_mask
+        ).sum(dim=[0, 1])
         # Compute the average of the supervision signal dividing by the number of elements
         signal_mean = signal_sum / num_elements_per_segment
 
@@ -514,9 +530,9 @@ class SupervisionNode(BaseNode):
         ).to(self._pose_footprint_in_world.device)
 
     def get_side_points(self):
-        return make_plane(x=0.0, y=self._width, pose=self._pose_footprint_in_world, grid_size=2).to(
-            self._pose_footprint_in_world.device
-        )
+        return make_plane(
+            x=0.0, y=self._width, pose=self._pose_footprint_in_world, grid_size=2
+        ).to(self._pose_footprint_in_world.device)
 
     def get_untraversable_plane(self, grid_size=5):
         device = self._pose_footprint_in_world.device
@@ -539,8 +555,12 @@ class SupervisionNode(BaseNode):
         )  # Translation vector (x, y, z)
         phi = torch.FloatTensor([0.0, 0.0, z_angle])  # roll-pitch-yaw
         R_BP = SO3.from_rpy(phi)
-        pose_plane_in_base = SE3(R_BP, rho).as_matrix().to(device)  # Pose matrix of plane in base frame
-        pose_plane_in_world = self._pose_base_in_world @ pose_plane_in_base  # Pose of plane in world frame
+        pose_plane_in_base = (
+            SE3(R_BP, rho).as_matrix().to(device)
+        )  # Pose matrix of plane in base frame
+        pose_plane_in_world = (
+            self._pose_base_in_world @ pose_plane_in_base
+        )  # Pose of plane in world frame
 
         # Make plane
         return make_dense_plane(
@@ -571,7 +591,9 @@ class SupervisionNode(BaseNode):
             footprint = make_polygon_from_points(points, grid_size=grid_size)
         return footprint
 
-    def update_traversability(self, traversability: torch.tensor, traversability_var: torch.tensor):
+    def update_traversability(
+        self, traversability: torch.tensor, traversability_var: torch.tensor
+    ):
         # Pessimistic rule: choose the less traversable one
         if (traversability < self._traversability).any():
             self._traversability = traversability
@@ -669,8 +691,12 @@ def run_base_state():
 
     import torch
 
-    rs1 = BaseNode(1, pose_base_in_world=SE3(SO3.identity(), torch.Tensor([1, 0, 0])).as_matrix())
-    rs2 = BaseNode(2, pose_base_in_world=SE3(SO3.identity(), torch.Tensor([2, 0, 0])).as_matrix())
+    rs1 = BaseNode(
+        1, pose_base_in_world=SE3(SO3.identity(), torch.Tensor([1, 0, 0])).as_matrix()
+    )
+    rs2 = BaseNode(
+        2, pose_base_in_world=SE3(SO3.identity(), torch.Tensor([2, 0, 0])).as_matrix()
+    )
 
     # Check that distance between robot states is correct
     assert abs(rs2.distance_to(rs1) - 1.0) < 1e-10

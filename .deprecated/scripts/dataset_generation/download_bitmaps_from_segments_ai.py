@@ -17,4 +17,6 @@ for sample in samples:
     res = load_label_bitmap_from_url(label.attributes.segmentation_bitmap.url)
     n = sample.name.replace(".png", ".pt")
     res = torch.from_numpy((res - 1).astype(bool))
-    torch.save(res, f"/media/Data/Datasets/2022_Perugia/wvn_output/labeling/{env}/labels/{n}")
+    torch.save(
+        res, f"/media/Data/Datasets/2022_Perugia/wvn_output/labeling/{env}/labels/{n}"
+    )

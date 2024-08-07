@@ -119,7 +119,9 @@ perugia_dataset = [
 ]
 
 
-def dataset_play(env="forest", mode="train", nr=0, rate=1.0, ignore_tf=False, other_args=""):
+def dataset_play(
+    env="forest", mode="train", nr=0, rate=1.0, ignore_tf=False, other_args=""
+):
     """
     Play a dataset.
     """

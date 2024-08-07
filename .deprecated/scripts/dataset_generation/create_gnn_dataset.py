@@ -28,7 +28,9 @@ if __name__ == "__main__":
         default="/media/Data/Datasets/Perugia/preprocessing_test/2022-05-12T11:44:56_mission_0_day_3/alphasense/cam4_undist",
         help="Folder containing images.",
     )
-    parser.add_argument("--dataset", type=str, default="perugia_forest", help="Dataset name.")
+    parser.add_argument(
+        "--dataset", type=str, default="perugia_forest", help="Dataset name."
+    )
     parser.add_argument("--store", type=bool, default=False, help="Store data")
     parser.add_argument("--store-graph", type=bool, default=True, help="Store data")
 
@@ -78,5 +80,7 @@ if __name__ == "__main__":
             path = os.path.join(base_dir, "graph", f"graph_{j:06d}.pt")
             torch.save(graph_data, path)
 
-    print(f"Created GNN dataset! Store Individual {args.store}, Store Graph: {args.store_graph}")
+    print(
+        f"Created GNN dataset! Store Individual {args.store}, Store Graph: {args.store_graph}"
+    )
     print(f"Output can be found in: {base_dir}!")

@@ -14,7 +14,9 @@ from liegroups.torch import SE3, SO3
 
 
 class ImageProjector:
-    def __init__(self, K: torch.tensor, h: int, w: int, new_h: int = None, new_w: int = None):
+    def __init__(
+        self, K: torch.tensor, h: int, w: int, new_h: int = None, new_w: int = None
+    ):
         """Initializes the projector using the pinhole model, without distortion
 
         Args:
@@ -54,7 +56,9 @@ class ImageProjector:
 
         # Prepare image cropper
         if new_w is None or new_w == new_h:
-            self.image_crop = T.Compose([T.Resize(new_h, T.InterpolationMode.NEAREST), T.CenterCrop(new_h)])
+            self.image_crop = T.Compose(
+                [T.Resize(new_h, T.InterpolationMode.NEAREST), T.CenterCrop(new_h)]
+            )
         else:
             self.image_crop = T.Resize([new_h, new_w], T.InterpolationMode.NEAREST)
 
@@ -103,7 +107,9 @@ class ImageProjector:
             self.camera.width.to(device),
         )
 
-    def check_validity(self, points_3d: torch.tensor, points_2d: torch.tensor) -> torch.tensor:
+    def check_validity(
+        self, points_3d: torch.tensor, points_2d: torch.tensor
+    ) -> torch.tensor:
         """Check that the points are valid after projecting them on the image
 
         Args:
@@ -171,11 +177,15 @@ class ImageProjector:
         C = 3  # RGB channel output
         H = self.camera.height.item()
         W = self.camera.width.item()
-        self.masks = torch.zeros((B, C, H, W), dtype=torch.float32, device=self.camera.camera_matrix.device)
+        self.masks = torch.zeros(
+            (B, C, H, W), dtype=torch.float32, device=self.camera.camera_matrix.device
+        )
         image_overlay = image
 
         # Project points
-        projected_points, valid_points, valid_z = self.project(pose_camera_in_world, points)
+        projected_points, valid_points, valid_z = self.project(
+            pose_camera_in_world, points
+        )
 
         # Mask invalid points
         # projected_points[~valid_points,:] = torch.nan
@@ -207,7 +217,10 @@ def run_image_projector():
     from wild_visual_navigation.utils import (
         make_polygon_from_points,
     )
-    from wild_visual_navigation.utils.testing import load_test_image, make_results_folder
+    from wild_visual_navigation.utils.testing import (
+        load_test_image,
+        make_results_folder,
+    )
     import matplotlib.pyplot as plt
     import torch
     from kornia.utils import tensor_to_image
@@ -222,7 +235,9 @@ def run_image_projector():
     # Prepare single pinhole model
     # Camera is created 1.5m backward, and 1m upwards, 0deg towards the origin
     # Intrinsics
-    K = torch.FloatTensor([[720, 0, 720, 0], [0, 720, 540, 0], [0, 0, 1, 0], [0, 0, 0, 1]])
+    K = torch.FloatTensor(
+        [[720, 0, 720, 0], [0, 720, 540, 0], [0, 0, 1, 0], [0, 0, 0, 1]]
+    )
     K = K.expand(B, 4, 4)
 
     # Extrisics
@@ -230,9 +245,13 @@ def run_image_projector():
 
     for i in range(B):
         rho = torch.FloatTensor([-1.2 - i / 10.0, 0, 1])  # Translation vector (x, y, z)
-        phi = torch.FloatTensor([-2 * torch.pi / 4, 0.0, -torch.pi / 2.4])  # roll-pitch-yaw
+        phi = torch.FloatTensor(
+            [-2 * torch.pi / 4, 0.0, -torch.pi / 2.4]
+        )  # roll-pitch-yaw
         R_WC = SO3.from_rpy(phi)  # Rotation matrix from roll-pitch-yaw
-        pose_camera_in_world[i] = SE3(R_WC, rho).as_matrix()  # Pose matrix of camera in world frame
+        pose_camera_in_world[i] = SE3(
+            R_WC, rho
+        ).as_matrix()  # Pose matrix of camera in world frame
     # Image size
     H = torch.tensor(1080)
     W = torch.tensor(1440)
@@ -249,7 +268,9 @@ def run_image_projector():
     # X = make_plane(x=0.8, y=0.5, pose=torch.eye(4))
     with Timer("make_plane"):
         # X = make_dense_plane(x=2, y=2, pose=torch.eye(4), grid_size=15)
-        points = torch.FloatTensor([[1, 1, 0], [-1, 1, 0], [-1, -1, 0], [1, -1, 0]]) * 0.5
+        points = (
+            torch.FloatTensor([[1, 1, 0], [-1, 1, 0], [-1, -1, 0], [1, -1, 0]]) * 0.5
+        )
         X = make_polygon_from_points(points)
 
     N, D = X.shape
@@ -258,7 +279,9 @@ def run_image_projector():
 
     # Project points to image
     with Timer("project_and_render"):
-        k_mask, k_img_overlay, k_points, k_valid = im.project_and_render(pose_camera_in_world, X, colors, k_img)
+        k_mask, k_img_overlay, k_points, k_valid = im.project_and_render(
+            pose_camera_in_world, X, colors, k_img
+        )
 
     # Plot points independently
     fig, ax = plt.subplots(B, 4, figsize=(4 * 5, B * 5))
@@ -270,7 +293,9 @@ def run_image_projector():
             for y in range(-3, 3, 1):
                 for x in range(-3, 3, 1):
                     try:
-                        k_points_overlay[:, idx[1].item() + y, idx[0].item() + x] = torch.tensor([0, 255, 0])
+                        k_points_overlay[:, idx[1].item() + y, idx[0].item() + x] = (
+                            torch.tensor([0, 255, 0])
+                        )
                     except Exception:
                         continue
 

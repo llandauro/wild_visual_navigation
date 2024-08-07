@@ -88,7 +88,9 @@ class KalmanFilter(nn.Module):
 
         return state, state_cov
 
-    def correction(self, state: torch.tensor, state_cov: torch.tensor, meas: torch.tensor):
+    def correction(
+        self, state: torch.tensor, state_cov: torch.tensor, meas: torch.tensor
+    ):
         # Innovation
         innovation = meas - self.meas_model @ state
 
@@ -96,10 +98,14 @@ class KalmanFilter(nn.Module):
         outlier_weight = self.get_outlier_weight(innovation, self.meas_cov)
 
         # Innovation covariance
-        innovation_cov = self.meas_model @ state_cov @ self.meas_model.t() + self.meas_cov
+        innovation_cov = (
+            self.meas_model @ state_cov @ self.meas_model.t() + self.meas_cov
+        )
 
         # Kalman gain
-        kalman_gain = outlier_weight * state_cov @ self.meas_model.t() @ innovation_cov.inverse()
+        kalman_gain = (
+            outlier_weight * state_cov @ self.meas_model.t() @ innovation_cov.inverse()
+        )
 
         # Updated state
         state = state + (kalman_gain @ innovation)
@@ -114,14 +120,24 @@ class KalmanFilter(nn.Module):
 
             # Apply outlier rejection strategy
             if self.outlier_rejection == "hard":
-                weight = torch.tensor([0.0]) if r.item() >= self.outlier_delta else torch.tensor([1.0])
+                weight = (
+                    torch.tensor([0.0])
+                    if r.item() >= self.outlier_delta
+                    else torch.tensor([1.0])
+                )
             elif self.outlier_rejection == "huber":
                 # Prepare Huber loss
                 abs_r = r.abs()
-                weight = 1.0 if abs_r <= self.outlier_delta else (self.outlier_delta / abs_r).item()
+                weight = (
+                    1.0
+                    if abs_r <= self.outlier_delta
+                    else (self.outlier_delta / abs_r).item()
+                )
                 return weight
             else:
-                print(f"Outlier rejection due to invalid option outlier_rejection [{self.outlier_rejection}].")
+                print(
+                    f"Outlier rejection due to invalid option outlier_rejection [{self.outlier_rejection}]."
+                )
                 return 1.0
         else:
             return 1.0
@@ -166,7 +182,9 @@ def run_kalman_filter():
     max_v = 1.0 - min_v
     salt_pepper_noise[salt_pepper_noise >= max_v] = 1.0
     salt_pepper_noise[salt_pepper_noise <= min_v] = -1.0
-    salt_pepper_noise[torch.logical_and(salt_pepper_noise > min_v, salt_pepper_noise < max_v)] = 0.0
+    salt_pepper_noise[
+        torch.logical_and(salt_pepper_noise > min_v, salt_pepper_noise < max_v)
+    ] = 0.0
     # White noise
     white_noise = torch.rand(N) / 2
 

@@ -52,7 +52,9 @@ if __name__ == "__main__":
 
     # Define command line arguments
 
-    parser.add_argument("--model_name", default="indoor_mpi", help="Description of model name argument")
+    parser.add_argument(
+        "--model_name", default="indoor_mpi", help="Description of model name argument"
+    )
     parser.add_argument(
         "--input_image_folder",
         default="demo_data",
@@ -65,8 +67,18 @@ if __name__ == "__main__":
     )
 
     # Fixed values
-    parser.add_argument("--network_input_image_height", type=int, default=224, help="Height of the input image")
-    parser.add_argument("--network_input_image_width", type=int, default=224, help="Width of the input image")
+    parser.add_argument(
+        "--network_input_image_height",
+        type=int,
+        default=224,
+        help="Height of the input image",
+    )
+    parser.add_argument(
+        "--network_input_image_width",
+        type=int,
+        default=224,
+        help="Width of the input image",
+    )
     parser.add_argument(
         "--segmentation_type",
         default="stego",
@@ -74,24 +86,45 @@ if __name__ == "__main__":
         help="Options: slic, grid, random, stego",
     )
     parser.add_argument(
-        "--feature_type", default="stego", choices=["dino", "dinov2", "stego"], help="Options: dino, dinov2, stego"
+        "--feature_type",
+        default="stego",
+        choices=["dino", "dinov2", "stego"],
+        help="Options: dino, dinov2, stego",
     )
-    parser.add_argument("--dino_patch_size", type=int, default=8, choices=[8, 16], help="Options: 8, 16")
-    parser.add_argument("--dino_backbone", default="vit_small", choices=["vit_small"], help="Options: vit_small")
     parser.add_argument(
-        "--slic_num_components", type=int, default=100, help="Number of components for SLIC segmentation"
+        "--dino_patch_size", type=int, default=8, choices=[8, 16], help="Options: 8, 16"
+    )
+    parser.add_argument(
+        "--dino_backbone",
+        default="vit_small",
+        choices=["vit_small"],
+        help="Options: vit_small",
+    )
+    parser.add_argument(
+        "--slic_num_components",
+        type=int,
+        default=100,
+        help="Number of components for SLIC segmentation",
     )
 
     parser.add_argument(
-        "--compute_confidence", action="store_true", help="Compute confidence for the traversability prediction"
+        "--compute_confidence",
+        action="store_true",
+        help="Compute confidence for the traversability prediction",
     )
-    parser.add_argument("--no-compute_confidence", dest="compute_confidence", action="store_false")
+    parser.add_argument(
+        "--no-compute_confidence", dest="compute_confidence", action="store_false"
+    )
     parser.set_defaults(compute_confidence=True)
 
     parser.add_argument(
-        "--prediction_per_pixel", action="store_true", help="Inference traversability per-pixel or per-segment"
+        "--prediction_per_pixel",
+        action="store_true",
+        help="Inference traversability per-pixel or per-segment",
     )
-    parser.add_argument("--no-prediction_per_pixel", dest="prediction_per_pixel", action="store_false")
+    parser.add_argument(
+        "--no-prediction_per_pixel", dest="prediction_per_pixel", action="store_false"
+    )
     parser.set_defaults(prediction_per_pixel=True)
 
     # Parse the command line arguments
@@ -109,7 +142,8 @@ if __name__ == "__main__":
 
     if anomaly_detection:
         confidence_generator = ConfidenceGenerator(
-            method=params.loss_anomaly.method, std_factor=params.loss_anomaly.confidence_std_factor
+            method=params.loss_anomaly.method,
+            std_factor=params.loss_anomaly.confidence_std_factor,
         )
     else:
         confidence_generator = ConfidenceGenerator(
@@ -183,7 +217,9 @@ if __name__ == "__main__":
         # Forward pass to predict traversability
         if args.prediction_per_pixel:
             # Pixel-wise traversability prediction using the dense features
-            data = Data(x=dense_feat[0].permute(1, 2, 0).reshape(-1, dense_feat.shape[1]))
+            data = Data(
+                x=dense_feat[0].permute(1, 2, 0).reshape(-1, dense_feat.shape[1])
+            )
         else:
             # input_feat = dense_feat[0].permute(1, 2, 0).reshape(-1, dense_feat.shape[1])
             # Segment-wise traversability prediction using the average feature per segment
@@ -207,15 +243,28 @@ if __name__ == "__main__":
 
         if args.compute_confidence:
             # Calculate confidence
-            loss_reco = F.mse_loss(prediction[:, 1:], data.x, reduction="none").mean(dim=1)
+            loss_reco = F.mse_loss(prediction[:, 1:], data.x, reduction="none").mean(
+                dim=1
+            )
             confidence = confidence_generator.inference_without_update(x=loss_reco)
             out_confidence = confidence.reshape(H, W)
-            conf_img = visualizer.plot_detectron_classification(torch_image, out_confidence, store=False)
+            conf_img = visualizer.plot_detectron_classification(
+                torch_image, out_confidence, store=False
+            )
             img_ls.append(conf_img)
 
         name = img_p.split("/")[-1].split(".")[0]
-        trav_img = visualizer.plot_detectron_classification(torch_image, out_trav, store=False)
-        print(out_trav.sum(), out_trav.max(), torch_image.sum(), data.x.sum(), dense_feat.sum(), torch_image.sum())
+        trav_img = visualizer.plot_detectron_classification(
+            torch_image, out_trav, store=False
+        )
+        print(
+            out_trav.sum(),
+            out_trav.max(),
+            torch_image.sum(),
+            data.x.sum(),
+            dense_feat.sum(),
+            torch_image.sum(),
+        )
 
         img_ls.append(trav_img)
         visualizer.plot_list(img_ls, tag=f"{name}_original_conf_trav", store=True)

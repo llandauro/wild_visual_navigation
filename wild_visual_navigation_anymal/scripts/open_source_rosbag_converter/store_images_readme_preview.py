@@ -18,14 +18,23 @@ class ImageSaver:
         self.dir_path = "/Data/open_source_dataset"
         # Create directories to store images
         # Subscriber for the images with approximate time synchronization
-        self.trav_sub = Subscriber("/wild_visual_navigation_visu_traversability_rear/traversability_overlayed", Image)
-        self.raw_sub = Subscriber("/wide_angle_camera_rear/image_color_rect_resize", Image)
-        self.sync = ApproximateTimeSynchronizer([self.trav_sub, self.raw_sub], queue_size=1, slop=0.3)
+        self.trav_sub = Subscriber(
+            "/wild_visual_navigation_visu_traversability_rear/traversability_overlayed",
+            Image,
+        )
+        self.raw_sub = Subscriber(
+            "/wide_angle_camera_rear/image_color_rect_resize", Image
+        )
+        self.sync = ApproximateTimeSynchronizer(
+            [self.trav_sub, self.raw_sub], queue_size=1, slop=0.3
+        )
         self.sync.registerCallback(self.callback)
 
     def callback(self, trav_msg, raw_msg):
         try:
-            trav_cv2 = self.bridge.imgmsg_to_cv2(trav_msg, desired_encoding="passthrough")
+            trav_cv2 = self.bridge.imgmsg_to_cv2(
+                trav_msg, desired_encoding="passthrough"
+            )
             raw_cv2 = self.bridge.imgmsg_to_cv2(raw_msg, desired_encoding="passthrough")
 
             # Convert images to RGBA format

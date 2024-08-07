@@ -119,8 +119,12 @@ class KLTTracker(torch.nn.Module):
         t_startXs_flat = t_startXs.flatten()
         t_startYs_flat = t_startYs.flatten()
 
-        t_newXs = torch.full(t_startXs_flat.shape, -1, dtype=torch.float32, device=self.device)
-        t_newYs = torch.full(t_startYs_flat.shape, -1, dtype=torch.float32, device=self.device)
+        t_newXs = torch.full(
+            t_startXs_flat.shape, -1, dtype=torch.float32, device=self.device
+        )
+        t_newYs = torch.full(
+            t_startYs_flat.shape, -1, dtype=torch.float32, device=self.device
+        )
 
         t_newXs, t_newYs = self.estimateFeatureTranslationBatch(
             t_startXs_flat,
@@ -136,18 +140,30 @@ class KLTTracker(torch.nn.Module):
 
         return t_newXs, t_newYs
 
-    def estimateFeatureTranslationBatch(self, t_startX, t_startY, t_Ix, t_Iy, t_img1_gray, t_img2_gray):
+    def estimateFeatureTranslationBatch(
+        self, t_startX, t_startY, t_Ix, t_Iy, t_img1_gray, t_img2_gray
+    ):
         BS = t_startX.shape[0]
         t_X = t_startX
         t_Y = t_startY
         t_mesh_x, t_mesh_y = self.t_mesh_x.clone(), self.t_mesh_y.clone()
 
-        t_mesh_x_flat_fix = t_mesh_x.flatten()[None].repeat(BS, 1) + t_X[:, None] - torch.floor(self.window_size / 2)
-        t_mesh_y_flat_fix = t_mesh_y.flatten()[None].repeat(BS, 1) + t_Y[:, None] - torch.floor(self.window_size / 2)
+        t_mesh_x_flat_fix = (
+            t_mesh_x.flatten()[None].repeat(BS, 1)
+            + t_X[:, None]
+            - torch.floor(self.window_size / 2)
+        )
+        t_mesh_y_flat_fix = (
+            t_mesh_y.flatten()[None].repeat(BS, 1)
+            + t_Y[:, None]
+            - torch.floor(self.window_size / 2)
+        )
 
         t_coor_fix = torch.stack((t_mesh_x_flat_fix, t_mesh_y_flat_fix), dim=1)
 
-        t_I1_value = interp2_torch_batch(t_img1_gray, t_coor_fix[:, 0, :], t_coor_fix[:, 1, :])
+        t_I1_value = interp2_torch_batch(
+            t_img1_gray, t_coor_fix[:, 0, :], t_coor_fix[:, 1, :]
+        )
         t_Ix_value = interp2_torch_batch(t_Ix, t_coor_fix[:, 0, :], t_coor_fix[:, 1, :])
         t_Iy_value = interp2_torch_batch(t_Iy, t_coor_fix[:, 0, :], t_coor_fix[:, 1, :])
 
@@ -156,10 +172,14 @@ class KLTTracker(torch.nn.Module):
 
         for _ in range(self.levels):
             t_mesh_x_flat = (
-                t_mesh_x.clone().flatten()[None].repeat(BS, 1) + t_X[:, None] - torch.floor(self.window_size / 2)
+                t_mesh_x.clone().flatten()[None].repeat(BS, 1)
+                + t_X[:, None]
+                - torch.floor(self.window_size / 2)
             )
             t_mesh_y_flat = (
-                t_mesh_y.clone().flatten()[None].repeat(BS, 1) + t_Y[:, None] - torch.floor(self.window_size / 2)
+                t_mesh_y.clone().flatten()[None].repeat(BS, 1)
+                + t_Y[:, None]
+                - torch.floor(self.window_size / 2)
             )
 
             t_coor = torch.stack((t_mesh_x_flat, t_mesh_y_flat), dim=1)

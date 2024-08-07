@@ -17,9 +17,14 @@ if __name__ == "__main__":
     debug = False  # debug mode
 
     device = "cuda" if torch.cuda.is_available() else "cpu"
-    mission_names = [name for name in os.listdir("/media/Data/Datasets/2022_Perugia/wvn_output/day3")]
+    mission_names = [
+        name for name in os.listdir("/media/Data/Datasets/2022_Perugia/wvn_output/day3")
+    ]
 
-    mission_folders = [os.path.join("/media/Data/Datasets/2022_Perugia/wvn_output/day3/", m) for m in mission_names]
+    mission_folders = [
+        os.path.join("/media/Data/Datasets/2022_Perugia/wvn_output/day3/", m)
+        for m in mission_names
+    ]
 
     fes = {}
 
@@ -78,11 +83,18 @@ if __name__ == "__main__":
     fes["grid16_dino112_8"] = FeatureExtractor(
         device, "slic", "dino", 112, model_type="vit_small", patch_size=8, cell_size=16
     )
-    fes["stego_dino112_8"] = FeatureExtractor(device, "stego", "dino", 112, model_type="vit_small", patch_size=8)
+    fes["stego_dino112_8"] = FeatureExtractor(
+        device, "stego", "dino", 112, model_type="vit_small", patch_size=8
+    )
 
     # read all needed images for training according to the defined split
     perugia_root = "/media/Data/Datasets/2022_Perugia"
-    split_files = [str(s) for s in Path("/media/Data/Datasets/2022_Perugia/wvn_output/split").rglob("*.txt")]
+    split_files = [
+        str(s)
+        for s in Path("/media/Data/Datasets/2022_Perugia/wvn_output/split").rglob(
+            "*.txt"
+        )
+    ]
     needed_images = []
     for f in split_files:
         with open(f, "r") as f:
@@ -115,11 +127,17 @@ if __name__ == "__main__":
             visualizers = {}
             for name, _ in fes.items():
                 if visu:
-                    visualizers[name] = LearningVisualizer(os.path.join(mission, "features", name))
+                    visualizers[name] = LearningVisualizer(
+                        os.path.join(mission, "features", name)
+                    )
 
                 for s in stores:
-                    os.makedirs(os.path.join(mission, "features", name, s), exist_ok=True)
-                os.makedirs(os.path.join(mission, "features", name, "graph"), exist_ok=True)
+                    os.makedirs(
+                        os.path.join(mission, "features", name, s), exist_ok=True
+                    )
+                os.makedirs(
+                    os.path.join(mission, "features", name, "graph"), exist_ok=True
+                )
 
             # read all available images in folder
             images = [str(s) for s in Path(mission, "image").rglob("*.pt")]
@@ -139,7 +157,9 @@ if __name__ == "__main__":
                     if not extract_corrospondences:
                         extract_with_flow[j] = True
 
-            images_to_process = np.logical_or(np.array(extract_with_flow), np.array(extract_for_flow))
+            images_to_process = np.logical_or(
+                np.array(extract_with_flow), np.array(extract_for_flow)
+            )
             images_to_store = np.array(extract_with_flow)
 
             idx_to_process = np.where(images_to_process)[0]
@@ -165,17 +185,25 @@ if __name__ == "__main__":
                 key = image.split("/")[-1][:-3]  # remove .pt
                 img = torch.load(image)
                 for name, feature_extractor in fes.items():
-                    edges, feat, seg, center = feature_extractor.extract(img.clone()[None], return_centers=True)
+                    edges, feat, seg, center = feature_extractor.extract(
+                        img.clone()[None], return_centers=True
+                    )
 
-                    filename = os.path.join(mission, "features", name, "seg", key + ".pt")
+                    filename = os.path.join(
+                        mission, "features", name, "seg", key + ".pt"
+                    )
                     if store and store_idx:
                         torch.save(seg, filename)
 
-                    filename = os.path.join(mission, "features", name, "center", key + ".pt")
+                    filename = os.path.join(
+                        mission, "features", name, "center", key + ".pt"
+                    )
                     if store and store_idx:
                         torch.save(center, filename)
 
-                    supervision_mask = torch.load(image.replace("image", "supervision_mask"))
+                    supervision_mask = torch.load(
+                        image.replace("image", "supervision_mask")
+                    )
                     feature_segments = seg
                     signal = supervision_mask.type(torch.float32)
 
@@ -222,7 +250,9 @@ if __name__ == "__main__":
                             from wild_visual_navigation.visu import LearningVisualizer
 
                             visu = LearningVisualizer(
-                                p_visu=os.path.join(WVN_ROOT_DIR, "results/extract_features"),
+                                p_visu=os.path.join(
+                                    WVN_ROOT_DIR, "results/extract_features"
+                                ),
                                 store=True,
                             )
                             visu.plot_sparse_optical_flow(
@@ -254,8 +284,12 @@ if __name__ == "__main__":
                             pca_seg = torch.zeros_like(seg).type(torch.float32)
                             for i in range(seg.max()):
                                 pca_seg[seg == i] = float(res[i])
-                            visu.plot_detectron_cont(img, pca_seg, tag="input_img", alpha=0)
-                            visu.plot_detectron_cont(img, pca_seg, tag="pca_of_features", alpha=1.0)
+                            visu.plot_detectron_cont(
+                                img, pca_seg, tag="input_img", alpha=0
+                            )
+                            visu.plot_detectron_cont(
+                                img, pca_seg, tag="pca_of_features", alpha=1.0
+                            )
 
                         data = Data(
                             x=feat,
@@ -282,6 +316,8 @@ if __name__ == "__main__":
                             y_valid=supervision_signal_valid,
                         )
 
-                    filename = os.path.join(mission, "features", name, "graph", key + ".pt")
+                    filename = os.path.join(
+                        mission, "features", name, "graph", key + ".pt"
+                    )
                     if store and store_idx:
                         torch.save(data, filename)

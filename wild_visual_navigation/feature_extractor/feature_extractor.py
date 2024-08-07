@@ -189,8 +189,12 @@ class FeatureExtractor:
         centers = torch.cat((seg_y, seg_x), dim=1)
 
         # Edges
-        hor_edges = torch.cat((seg[:, :-1].reshape(-1, 1), seg[:, 1:].reshape(-1, 1)), dim=1)
-        ver_edges = torch.cat((seg[:-1, :].reshape(-1, 1), seg[1:, :].reshape(-1, 1)), dim=1)
+        hor_edges = torch.cat(
+            (seg[:, :-1].reshape(-1, 1), seg[:, 1:].reshape(-1, 1)), dim=1
+        )
+        ver_edges = torch.cat(
+            (seg[:-1, :].reshape(-1, 1), seg[1:, :].reshape(-1, 1)), dim=1
+        )
         edges = torch.cat((hor_edges, ver_edges), dim=0)
 
         return edges, seg[None, None], centers
@@ -221,7 +225,9 @@ class FeatureExtractor:
     def segment_slic(self, img, **kwargs):
         # Get slic clusters
         img_np = kornia.utils.tensor_to_image(img)
-        seg = self.slic.iterate(np.uint8(np.ascontiguousarray(img_np) * 255))[None, None]
+        seg = self.slic.iterate(np.uint8(np.ascontiguousarray(img_np) * 255))[
+            None, None
+        ]
         return torch.from_numpy(seg).to(self._device).type(torch.long)
 
     def segment_random(self, img, **kwargs):
@@ -248,7 +254,9 @@ class FeatureExtractor:
         self._stego_features_already_computed_in_segmentation = True
         return seg
 
-    def compute_features(self, img: torch.tensor, seg: torch.tensor, center: torch.tensor, **kwargs):
+    def compute_features(
+        self, img: torch.tensor, seg: torch.tensor, center: torch.tensor, **kwargs
+    ):
         if self._feature_type == "histogram":
             feat = self.compute_histogram(img, seg, center, **kwargs)
 
@@ -274,7 +282,9 @@ class FeatureExtractor:
         raise NotImplementedError("compute_histogram is not implemented yet")
 
     @torch.no_grad()
-    def compute_sift(self, img: torch.tensor, seg: torch.tensor, center: torch.tensor, **kwargs):
+    def compute_sift(
+        self, img: torch.tensor, seg: torch.tensor, center: torch.tensor, **kwargs
+    ):
         B, C, H, W = img.shape
         if C == 3:
             feat_r = self._extractor(img[:, 0, :, :][None])
@@ -286,19 +296,25 @@ class FeatureExtractor:
         return features
 
     @torch.no_grad()
-    def compute_dino(self, img: torch.tensor, seg: torch.tensor, center: torch.tensor, **kwargs):
+    def compute_dino(
+        self, img: torch.tensor, seg: torch.tensor, center: torch.tensor, **kwargs
+    ):
         img_internal = img.clone()
         features = self._extractor.inference(img_internal)
         return features
 
     @torch.no_grad()
-    def compute_torchvision(self, img: torch.tensor, seg: torch.tensor, center: torch.tensor, **kwargs):
+    def compute_torchvision(
+        self, img: torch.tensor, seg: torch.tensor, center: torch.tensor, **kwargs
+    ):
         img_internal = img.clone()
         features = self._extractor.inference(img_internal)
         return features
 
     @torch.no_grad()
-    def compute_stego(self, img: torch.tensor, seg: torch.tensor, center: torch.tensor, **kwargs):
+    def compute_stego(
+        self, img: torch.tensor, seg: torch.tensor, center: torch.tensor, **kwargs
+    ):
         if self._stego_features_already_computed_in_segmentation:
             self._stego_features_already_computed_in_segmentation = False
             return self._extractor.features
@@ -307,14 +323,22 @@ class FeatureExtractor:
             self._extractor.inference(img_internal)
             return self._extractor.features
 
-    def sparsify_features(self, dense_features: torch.tensor, seg: torch.tensor, cumsum_trick=False):
-        if self._feature_type not in ["histogram"] and self._segmentation_type not in ["none"]:
+    def sparsify_features(
+        self, dense_features: torch.tensor, seg: torch.tensor, cumsum_trick=False
+    ):
+        if self._feature_type not in ["histogram"] and self._segmentation_type not in [
+            "none"
+        ]:
             # Get median features for each cluster
 
             if type(dense_features) == dict:
                 # Multiscale feature pyramid extraction
-                scales_x = [feat.shape[2] / seg.shape[0] for feat in dense_features.values()]
-                scales_y = [feat.shape[3] / seg.shape[1] for feat in dense_features.values()]
+                scales_x = [
+                    feat.shape[2] / seg.shape[0] for feat in dense_features.values()
+                ]
+                scales_y = [
+                    feat.shape[3] / seg.shape[1] for feat in dense_features.values()
+                ]
 
                 segs = [
                     torch.nn.functional.interpolate(
@@ -369,7 +393,11 @@ class FeatureExtractor:
                 if cumsum_trick:
                     # Cumsum is slightly slower for 100 segments
                     # Trick: sort the featuers according to the segments and then use cumsum for summing
-                    dense_features = dense_features[0].permute(1, 2, 0).reshape(-1, dense_features.shape[1])
+                    dense_features = (
+                        dense_features[0]
+                        .permute(1, 2, 0)
+                        .reshape(-1, dense_features.shape[1])
+                    )
                     seg = seg.reshape(-1)
                     sorts = seg.argsort()
                     dense_features_sort, seg_sort = dense_features[sorts], seg[sorts]
@@ -377,7 +405,9 @@ class FeatureExtractor:
                     # The cumsum operation is the only one that takes times
                     x = x.cumsum(0)
                     kept = torch.ones(x.shape[0], device=x.device, dtype=torch.bool)
-                    elements_sumed = torch.arange(x.shape[0], device=x.device, dtype=torch.int)
+                    elements_sumed = torch.arange(
+                        x.shape[0], device=x.device, dtype=torch.int
+                    )
                     kept[:-1] = seg_sort[1:] != seg_sort[:-1]
                     x = x[kept]
                     x = torch.cat((x[:1], x[1:] - x[:-1]))

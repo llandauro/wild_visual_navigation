@@ -8,7 +8,9 @@ except ImportError:
     pass
 
 
-@pytest.mark.skipif("pytorch_pwc" not in sys.modules, reason="requires the pytorch_pwc library")
+@pytest.mark.skipif(
+    "pytorch_pwc" not in sys.modules, reason="requires the pytorch_pwc library"
+)
 def pytorch_pwc_test():
     import os
     import torch
@@ -20,7 +22,9 @@ def pytorch_pwc_test():
 
     tenOne = torch.FloatTensor(
         np.ascontiguousarray(
-            np.array(PIL.Image.open(os.path.join(PWC_ROOT_DIR, "assets/one.png")))[:, :, ::-1]
+            np.array(PIL.Image.open(os.path.join(PWC_ROOT_DIR, "assets/one.png")))[
+                :, :, ::-1
+            ]
             .transpose(2, 0, 1)
             .astype(np.float32)
             * (1.0 / 255.0)
@@ -28,7 +32,9 @@ def pytorch_pwc_test():
     ).cuda()
     tenTwo = torch.FloatTensor(
         np.ascontiguousarray(
-            np.array(PIL.Image.open(os.path.join(PWC_ROOT_DIR, "assets/two.png")))[:, :, ::-1]
+            np.array(PIL.Image.open(os.path.join(PWC_ROOT_DIR, "assets/two.png")))[
+                :, :, ::-1
+            ]
             .transpose(2, 0, 1)
             .astype(np.float32)
             * (1.0 / 255.0)
@@ -43,7 +49,9 @@ def pytorch_pwc_test():
         for i in range(100):
             res = fe.forward(a, b)
 
-    visu = LearningVisualizer(p_visu=os.path.join(WVN_ROOT_DIR, "results/test_visu"), store=True)
+    visu = LearningVisualizer(
+        p_visu=os.path.join(WVN_ROOT_DIR, "results/test_visu"), store=True
+    )
     visu.plot_optical_flow(res, tenOne, tenTwo)
     print("done")
 
