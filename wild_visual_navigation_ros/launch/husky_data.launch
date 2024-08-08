@@ -1,0 +1,25 @@
+<launch>
+  <!--This launch file is to train the model using data collected by the Mobile Robotics Lab. -->
+  <!-- When launching a ros file, roscore is run autmoatically -->
+
+  <!-- launch husky_localization -->
+  <include file ="$(find husky_localization)/launch/husky_localization.launch"/>
+
+  <!-- Set parameter for simulation time -->
+  <param name="use_sim_true" type="bool" value"true"/>
+
+  <!-- Play ROS bag file with clock enabled -->
+  <node name="rosbag_play" pkg="rosbag" type="play" args"home/adaptation/landauro/Pictures/Forest_Pictures/april25th/april25th_bc_data1.bag --clock"/>
+
+  <!-- Run odometry_translator.py -->
+  <node name="odometry_translator" pkg="wild_visual_navigation_ros" type="odometry_translator.py" output="screen">
+  </node>
+
+  <node name="wvn_feature_extractor" pkg="wild_visual_navigation_ros" type="wvn_feature_extractor_node.py" output="screen">
+  </node>
+
+  <node name="wvn_learning_node" pkg="wild_navigation_ros" type="wvn_learning.py" output="screen">
+  </node>
+
+
+</launch>
