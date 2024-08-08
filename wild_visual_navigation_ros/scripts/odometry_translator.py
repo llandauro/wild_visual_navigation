@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 import rospy
 from nav_msgs.msg import Odometry
 from wild_visual_navigation_msgs.msg import RobotState

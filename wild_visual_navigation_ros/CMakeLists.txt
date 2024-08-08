@@ -19,7 +19,8 @@ catkin_package(
 )
 
 catkin_python_setup()
-catkin_install_python(PROGRAMS  scripts/wvn_feature_extractor_node.py
+catkin_install_python(PROGRAMS  scripts/odometry_translator.py
+                                scripts/wvn_feature_extractor_node.py
                                 scripts/wvn_learning_node.py
                                 scripts/overlay_images.py
                                 scripts/smart_carrot.py
