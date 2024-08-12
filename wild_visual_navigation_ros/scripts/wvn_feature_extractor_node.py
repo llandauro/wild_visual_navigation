@@ -36,6 +36,8 @@ import os
 
 class WvnFeatureExtractor:
     def __init__(self, node_name):
+
+        rospy.loginfo("Initializing WvnFeatureExtractor node")
         # Read params
         self.read_params()
 
@@ -47,6 +49,7 @@ class WvnFeatureExtractor:
         self._last_checkpoint_ts = rospy.get_time()
 
         # Setup modules
+        rospy.loginfo(f"[{node_name}] Setting up feature extractor")
         self._feature_extractor = FeatureExtractor(
             self._ros_params.device,
             segmentation_type=self._ros_params.segmentation_type,
@@ -59,6 +62,7 @@ class WvnFeatureExtractor:
 
         # Load model
         # We manually update the input size to the models depending on the chosen features
+        rospy.loginfo(f"[{node_name}] Loading model")
         self._params.model.simple_mlp_cfg.input_size = (
             self._feature_extractor.feature_dim
         )
@@ -91,6 +95,7 @@ class WvnFeatureExtractor:
         # Setup verbosity levels
         if self._ros_params.verbose:
 
+            rospy.loginfo(f"[{node_name}] Starting status thread")
             self._status_thread_stop_event = Event()
             self._status_thread = Thread(target=self.status_thread_loop, name="status")
             self._run_status_thread = True
@@ -112,6 +117,7 @@ class WvnFeatureExtractor:
 
     def read_params(self):
         """Reads all the parameters from the parameter server"""
+        rospy.loginfo("Reading parameters from the parameter server in feature_extractor node")
         self._params = OmegaConf.structured(ExperimentParams)
         self._ros_params = OmegaConf.structured(RosFeatureExtractorNodeParams)
 
@@ -130,6 +136,7 @@ class WvnFeatureExtractor:
             )
 
         self.anomaly_detection = self._params.model.name == "LinearRnvp"
+        rospy.loginfo("Anomaly detection enabled: {self.anomaly_detection} in feature extractor ")
 
     def setup_ros(self, setup_fully=True):
         """Main function to setup ROS-related stuff: publishers, subscribers and services"""

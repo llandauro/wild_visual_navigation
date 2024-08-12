@@ -15,7 +15,7 @@ class OdometryProcessor:
         )
 
     def odom_callback(self, msg):
-        rospy.loginfo("Received odometry message.")
+        #rospy.loginfo("Received odometry message.")
 
         pose_stamped = PoseStamped()
         pose_stamped.header = msg.header
@@ -30,11 +30,11 @@ class OdometryProcessor:
         robot_state_msg.twist = twist_stamped
 
         self.robot_state_publisher.publish(robot_state_msg)
-        rospy.loginfo("Published RobotState message.")
+        #rospy.loginfo("Published RobotState message.")
 
 
 if __name__ == "__main__":
     rospy.init_node("odometry_processor", anonymous=True)  # made the node
     odometry_processor = OdometryProcessor()
-    rospy.loginfo("Node started. Waiting for message.")
+    #rospy.loginfo("odometry_processor node started. Waiting for message.")
     rospy.spin()
