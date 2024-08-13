@@ -259,10 +259,14 @@ class WvnLearning:
                 f"[{self._node_name}] Start waiting for RobotState topic {self._ros_params.robot_state_topic} being published!"
             )
             rospy.wait_for_message(self._ros_params.robot_state_topic, RobotState)
+            rospy.loginfo(f"Received Robot State message")
+
             rospy.loginfo(
                 f"[{self._node_name}] Start waiting for TwistStamped topic {self._ros_params.desired_twist_topic} being published!"
             )
             rospy.wait_for_message(self._ros_params.desired_twist_topic, TwistStamped)
+            rospy.loginfo(f"Received TwistStamped message")
+
             self._robot_state_sub.registerCallback(self.robot_state_callback)
 
             self._camera_handler = {}

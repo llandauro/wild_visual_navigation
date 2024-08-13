@@ -124,14 +124,14 @@ class WvnFeatureExtractor:
         # Override the empty dataclass with values from rosparm server
         with read_write(self._ros_params):
             for k in self._ros_params.keys():
+                self._ros_params[k] = rospy.get_param(f"~{k}")
                 # debugging the camera_topic issue
-                param_name=f"~{k}"
-                if rospy.has_param(param_name):
-                    self._ros_params[k] = rospy.get_param(param_name)
-                    rospy.loginfo(f"Parameter {param_name} has value {self._ros_params[k]}")
-                else:
-                    rospy.logwarn(f"Parameter {param_name} not found on the parameter server")
-            
+                #param_name=f"~{k}"
+                #if rospy.has_param(param_name):
+                #    self._ros_params[k] = rospy.get_param(param_name)
+                #    rospy.loginfo(f"Parameter {param_name} has value {self._ros_params[k]}")
+                #else:
+                #    rospy.logwarn(f"Parameter {param_name} not found on the parameter server")
 
         with read_write(self._params):
             self._params.loss.confidence_std_factor = (
@@ -179,7 +179,6 @@ class WvnFeatureExtractor:
             # t = self._ros_params.camera_topics[cam]["info_topic"]
             # rospy.loginfo(f"[{self._node_name}] Waiting for camera info topic {t}")
             # camera_info_msg = rospy.wait_for_message(self._ros_params.camera_topics[cam]["info_topic"], CameraInfo)
-            rospy.loginfo(f"[{self._node_name}] Done")
             camera_info_msg = CameraInfo()
             K = np.array(
                 [
@@ -238,7 +237,6 @@ class WvnFeatureExtractor:
             base_topic = self._ros_params.camera_topics[cam]["image_topic"].replace(
                 "/compressed", ""
             )
-            print(base_topic)
             is_compressed = (
                 self._ros_params.camera_topics[cam]["image_topic"] != base_topic
             )

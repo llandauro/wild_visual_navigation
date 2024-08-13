@@ -11,8 +11,8 @@
   <!-- Play ROS bag file with clock enabled -->
   <node name="rosbag_play" pkg="rosbag" type="play" args="/home/adaptation/landauro/Pictures/Forest_Pictures/april25th/april25th_bc_data1.bag --clock"/>
 
-  <!-- Run odometry_translator.py -->
-  <node name="odometry_translator" pkg="wild_visual_navigation_ros" type="odometry_translator.py" output="screen">
+  <!-- Run topic_processor.py -->
+  <node name="topic_processor" pkg="wild_visual_navigation_ros" type="topic_processor.py" output="screen">
   </node>
 
   <!-- Run wvn_feature_extractor.py -->
