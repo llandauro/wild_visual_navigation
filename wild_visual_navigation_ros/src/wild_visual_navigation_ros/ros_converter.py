@@ -4,6 +4,7 @@
 # See LICENSE file in the project root for details.
 #                                                                               
 import cv2
+import rospy
 from geometry_msgs.msg import Pose
 from nav_msgs.msg import Odometry
 from sensor_msgs.msg import Image, CompressedImage
@@ -52,6 +53,7 @@ def robot_state_to_torch(robot_state, device="cpu"):
 
 def wvn_robot_state_to_torch(robot_state, device="cpu"):
     # TODO this should export a SE(3) pose, a R3 twist, a latent, and the labels
+    rospy.logwarn(f"{[x.name for x in robot_state.states]}")
     vector_state = [x for x in robot_state.states if x.name == "vector_state"][0]
     # torch_state = torch.zeros(BASE_DIM + ANYMAL_DIM, dtype=torch.float32).to(device)
     torch_state = torch.FloatTensor(vector_state.values).to(device)

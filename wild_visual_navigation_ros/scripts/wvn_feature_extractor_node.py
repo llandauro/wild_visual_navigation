@@ -146,6 +146,9 @@ class WvnFeatureExtractor:
 
     def setup_ros(self, setup_fully=True):
         """Main function to setup ROS-related stuff: publishers, subscribers and services"""
+
+        rospy.logwarn("feature_extractor's setup_ros was executed")
+
         # Image callback
 
         self._camera_handler = {}
@@ -171,15 +174,22 @@ class WvnFeatureExtractor:
             self._ros_params.camera_topics[cam]["name"] = cam
 
             # Add to scheduler
+            # Hypothesis: no scheduler process was added here or smth
+            
+            #weight = self._ros_params.camera_topics[cam]["scheduler_weight"]
+            #rospy.logwarn(f"Adding process for camera {cam} with weight {weight}")
+            #self._camera_scheduler.add_process(cam, weight)
+
             self._camera_scheduler.add_process(
                 cam, self._ros_params.camera_topics[cam]["scheduler_weight"]
-            )
+            ) #actually this is added properly with weight 1
 
             # Camera info
             # t = self._ros_params.camera_topics[cam]["info_topic"]
             # rospy.loginfo(f"[{self._node_name}] Waiting for camera info topic {t}")
             # camera_info_msg = rospy.wait_for_message(self._ros_params.camera_topics[cam]["info_topic"], CameraInfo)
             camera_info_msg = CameraInfo()
+            camera_info_msg.header.stamp = rospy.Time.now() # Header timestamp should be acquisition time of image
             K = np.array(
                 [
                     [2.41394434e03, 0.00000000e00, 2.03381238e03],
@@ -298,12 +308,15 @@ class WvnFeatureExtractor:
                 self._camera_handler[cam]["conf_pub"] = conf_pub
 
             if self._ros_params.camera_topics[cam]["use_for_training"]:
+                rospy.logwarn(f"/wild_visual_navigation_node/{cam}/feat was published")
                 imagefeat_pub = rospy.Publisher(
                     f"/wild_visual_navigation_node/{cam}/feat",
                     ImageFeatures,
                     queue_size=1,
                 )
                 self._camera_handler[cam]["imagefeat_pub"] = imagefeat_pub
+            else:
+                rospy.logwarn(f"/wild_visual_navigation_node/{cam}/feat was NOT published")
 
     def status_thread_loop(self):
         rate = rospy.Rate(self._ros_params.status_thread_rate)
@@ -349,17 +362,20 @@ class WvnFeatureExtractor:
             info_msg (sensor_msgs/CameraInfo): Camera info message associated to the image
             cam (str): Camera name
         """
-        
+        rospy.logwarn(f"Image callback triggered for camera: {cam}")
+
         # Check the rate
         ts = image_msg.header.stamp.to_sec()
         if (
             abs(ts - self._last_image_ts[cam])
             < 1.0 / self._ros_params.image_callback_rate
         ):
+            rospy.logwarn(f"Image callback finished early due to rate")
             return
 
         # Check the scheduler
         if self._camera_scheduler.get() != cam:
+            rospy.logwarn(f"Image callback finished early when checking the scheduler")
             return
         else:
             if self._ros_params.verbose:
@@ -375,6 +391,8 @@ class WvnFeatureExtractor:
                 self._log_data[f"time_last_image_{cam}"] = rospy.get_time()
 
             # Update model from file if possible
+            # Model Loading Failed happens here, I think it's okay if it fails
+            #callback should be triggered again after this
             self.load_model(image_msg.header.stamp)
 
             # Convert image message to torch image
@@ -456,6 +474,7 @@ class WvnFeatureExtractor:
                 self._camera_handler[cam]["conf_pub"].publish(msg)
 
             # Publish features and feature_segments
+            # here would be the problem !
             if self._ros_params.camera_topics[cam]["use_for_training"]:
                 msg = ImageFeatures()
                 msg.header = image_msg.header
@@ -464,6 +483,9 @@ class WvnFeatureExtractor:
                 )
                 msg.feature_segments.header = image_msg.header
                 feat_np = feat.cpu().numpy()
+
+                #rospy.logwarn(f"{feat_np=}")
+                #it does publish something
 
                 mad1 = MultiArrayDimension()
                 mad1.label = "n"
@@ -478,6 +500,14 @@ class WvnFeatureExtractor:
                 msg.features.data = feat_np.flatten().tolist()
                 msg.features.layout.dim.append(mad1)
                 msg.features.layout.dim.append(mad2)
+
+                #rospy.logwarn(f"Publishing message to /wild_visual_navigation_node/{cam}/feat")
+                #rospy.logwarn(f"Message Header: {msg.header}")
+                #rospy.logwarn(f"Feature Segments Header: {msg.feature_segments.header}")
+                #rospy.logwarn(f"Feature Data Layout: {msg.features.layout}")
+                #rospy.logwarn(f"Feature Data: {msg.features.data[:10]}")  # Log the first 10 elements of the feature data
+                
+                #Message here did get published once!
                 self._camera_handler[cam]["imagefeat_pub"].publish(msg)
 
         except Exception as e:

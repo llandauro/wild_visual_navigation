@@ -3,7 +3,7 @@
   <!-- When launching a ros file, roscore is run automatically -->
 
   <!-- Set parameter for simulation time -->
-  <param name="use_sim_true" type="bool" value="true"/>
+  <param name="use_sim_time" type="bool" value="true"/>
 
   <!-- launch husky_localization -->
   <include file="$(find husky_localization)/launch/husky_localization.launch"/>

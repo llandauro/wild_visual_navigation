@@ -177,11 +177,11 @@ if __name__ == "__main__":
     model.load_state_dict(model_state_dict, strict=False)
     print(f"\nLoaded model `{args.model_name}` successfully!")
 
-    cg = model_state_dict["confidence_generator"]
+    cg = model_state_dict["traversability_loss_state_dict"]
     # Only mean and std are needed
-    confidence_generator.var = cg["var"]
-    confidence_generator.mean = cg["mean"]
-    confidence_generator.std = cg["std"]
+    confidence_generator.var = torch.nn.Parameter(cg["_confidence_generator.var"])
+    confidence_generator.mean = torch.nn.Parameter(cg["_confidence_generator.mean"])
+    confidence_generator.std = torch.nn.Parameter(cg["_confidence_generator.std"])
 
     images = [str(s) for s in Path(input_image_folder).rglob("*.png" or "*.jpg")]
     print(f"Found {len(images)} images in the folder! \n")

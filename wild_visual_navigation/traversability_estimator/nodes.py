@@ -251,6 +251,7 @@ class MissionNode(BaseNode):
                 )
 
     def is_valid(self):
+        # JF: look here
         valid_members = (
             isinstance(self._features, torch.Tensor)
             and isinstance(self._supervision_signal, torch.Tensor)

@@ -15,8 +15,13 @@ class OdometryProcessor:
             "/wild_visual_navigation_node/robot_state", RobotState, queue_size=10
         ) # set a publisher of Robot State messages
 
+        # Store the latest odometry header for synchronized timestamps
+        self.latest_odom_header = None
+
     def odom_callback(self, msg):
         #rospy.loginfo("Received odometry message.")
+
+        self.latest_odom_header = msg.header
 
         pose_stamped = PoseStamped()
         pose_stamped.header = msg.header
@@ -27,6 +32,7 @@ class OdometryProcessor:
         twist_stamped.twist = msg.twist.twist
 
         robot_state_msg = RobotState()
+        robot_state_msg.header.stamp = msg.header.stamp
         robot_state_msg.pose = pose_stamped
         robot_state_msg.twist = twist_stamped
 
@@ -34,7 +40,8 @@ class OdometryProcessor:
         #rospy.loginfo("Published RobotState message.")
 
 class TwistProcessor:
-    def __init__(self):
+    def __init__(self, odometry_processor):
+        self.odometry_processor = odometry_processor
         self.twist_subscriber = rospy.Subscriber(
             "/husky_velocity_controller/cmd_vel", Twist, self.twist_callback
         )  # subscribed to twist stamped
@@ -44,9 +51,9 @@ class TwistProcessor:
 
     def twist_callback(self, msg):
         #rospy.loginfo("Received Twist message.")
-
+        
         twist_stamped = TwistStamped()
-
+        '''
         twist_stamped.header = Header()
         twist_stamped.header.stamp = rospy.Time.now()
 
@@ -54,12 +61,24 @@ class TwistProcessor:
 
         self.twist_stamped_publisher.publish(twist_stamped)
         #rospy.loginfo("Published TwistStamped message.")
+        '''
+
+        # Use the latest odometry header timestamp
+        if self.odometry_processor.latest_odom_header is not None:
+            twist_stamped.header = self.odometry_processor.latest_odom_header
+        else:
+            twist_stamped.header.stamp = rospy.Time.now()  # fallback if odometry is not received yet
+
+        twist_stamped.twist = msg
+
+        self.twist_stamped_publisher.publish(twist_stamped)
+        # rospy.loginfo("Published TwistStamped message.")
 
 
 
 if __name__ == "__main__":
     rospy.init_node("topic_processor", anonymous=True)  # made the node
     odometry_processor = OdometryProcessor()
-    twist_processor = TwistProcessor()
+    twist_processor = TwistProcessor(odometry_processor)
     #rospy.loginfo("odometry_processor node started. Waiting for message.")
     rospy.spin()

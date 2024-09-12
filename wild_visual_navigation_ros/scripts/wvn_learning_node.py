@@ -126,6 +126,7 @@ class WvnLearning:
             ),
         )
 
+        #Check if this worked!
         # Register shutdown callbacks
         rospy.on_shutdown(self.shutdown_callback)
         signal.signal(signal.SIGINT, self.shutdown_callback)
@@ -149,7 +150,7 @@ class WvnLearning:
 
     def shutdown_callback(self, *args, **kwargs):
         # Write stuff to files
-        rospy.logwarn("Shutdown callback called")
+        rospy.loginfo("Shutdown callback called")
         if self._ros_params.mode != WVNMode.EXTRACT_LABELS:
             self._learning_thread_stop_event.set()
             # self.logging_thread_stop_event.set()
@@ -242,6 +243,8 @@ class WvnLearning:
             self.tf_listener = tf2_ros.TransformListener(self.tf_buffer)
 
             # Robot state callback
+            #rospy.logwarn(f"{self._ros_params.robot_state_topic=}")
+            #rospy.logwarn(f"{self._ros_params.desired_twist_topic=}")
             robot_state_sub = message_filters.Subscriber(
                 self._ros_params.robot_state_topic, RobotState
             )
@@ -259,13 +262,13 @@ class WvnLearning:
                 f"[{self._node_name}] Start waiting for RobotState topic {self._ros_params.robot_state_topic} being published!"
             )
             rospy.wait_for_message(self._ros_params.robot_state_topic, RobotState)
-            rospy.loginfo(f"Received Robot State message")
+            #rospy.loginfo(f"Received Robot State message")
 
             rospy.loginfo(
                 f"[{self._node_name}] Start waiting for TwistStamped topic {self._ros_params.desired_twist_topic} being published!"
             )
             rospy.wait_for_message(self._ros_params.desired_twist_topic, TwistStamped)
-            rospy.loginfo(f"Received TwistStamped message")
+            #rospy.loginfo(f"Received TwistStamped message")
 
             self._robot_state_sub.registerCallback(self.robot_state_callback)
 
@@ -310,10 +313,11 @@ class WvnLearning:
                     ] = last_image_overlay_pub
 
                 else:
-                    print(f"/wild_visual_navigation_node/{cam}/feat")
+                    #print(f"/wild_visual_navigation_node/{cam}/feat")
                     imagefeat_sub = message_filters.Subscriber(
                         f"/wild_visual_navigation_node/{cam}/feat", ImageFeatures
                     )
+                    #print(f"wild_visual_navigation_node/{cam}/camera_info")
                     info_sub = message_filters.Subscriber(
                         f"/wild_visual_navigation_node/{cam}/camera_info", CameraInfo
                     )
@@ -487,7 +491,11 @@ class WvnLearning:
             state_msg (wild_visual_navigation_msgs/RobotState): Robot state message
             desired_twist_msg (geometry_msgs/TwistStamped): Desired twist message
         """
+
+        #rospy.loginfo("robot_state_callback was called")
+        
         if not self._setup_ready:
+            #rospy.logwarn("Ros setup not ready,robot_state_callback aborting")
             return
 
         self._system_events["robot_state_callback_received"] = {
@@ -500,6 +508,7 @@ class WvnLearning:
                 abs(ts - self._last_supervision_ts)
                 < 1.0 / self._ros_params.supervision_callback_rate
             ):
+                #rospy.logwarn("Robot state callback canceled due to rate")
                 self._system_events["robot_state_callback_canceled"] = {
                     "time": time_func(),
                     "value": "canceled due to rate",
@@ -517,11 +526,15 @@ class WvnLearning:
                 device=self._ros_params.device,
             )
             if not success:
+                #rospy.loginfo("TF query failed for pose_base_in_world")
                 self._system_events["robot_state_callback_canceled"] = {
                     "time": time_func(),
                     "value": "canceled due to pose_base_in_world",
                 }
                 return
+            
+            #if success:
+            #    rospy.loginfo("TF query succeeded for pose_base_world")
 
             success, pose_footprint_in_base = rc.ros_tf_to_torch(
                 self.query_tf(
@@ -532,11 +545,15 @@ class WvnLearning:
                 device=self._ros_params.device,
             )
             if not success:
+                #rospy.loginfo("TF query failed for pose_base_in_world")
                 self._system_events["robot_state_callback_canceled"] = {
                     "time": time_func(),
                     "value": "canceled due to pose_footprint_in_base",
                 }
                 return
+                
+            #if success:
+                #rospy.loginfo("TF query succeeded for pose_footprint_in_base")
 
             # The footprint requires a correction: we use the same orientation as the base
             pose_footprint_in_base[:3, :3] = torch.eye(
@@ -544,9 +561,10 @@ class WvnLearning:
             )
 
             # Convert state to tensor
-            supervision_tensor, supervision_labels = rc.wvn_robot_state_to_torch(
-                state_msg, device=self._ros_params.device
-            )
+            # supervision_tensor, supervision_labels = rc.wvn_robot_state_to_torch(
+            #     state_msg, device=self._ros_params.device
+            # )
+            supervision_tensor = torch.zeros((1,), device=self._ros_params.device)
             current_twist_tensor = rc.twist_stamped_to_torch(
                 state_msg.twist, device=self._ros_params.device
             )
@@ -595,6 +613,7 @@ class WvnLearning:
                 "time": time_func(),
                 "value": "executed successfully",
             }
+            # rospy.logwarn("AAAAAAAAAAAAAAAAAAAAAAAAA")
 
         except Exception as e:
             traceback.print_exc()
@@ -614,8 +633,20 @@ class WvnLearning:
             imagefeat_msg (wild_visual_navigation_msg/ImageFeatures): Incoming imagefeatures
             info_msg (sensor_msgs/CameraInfo): Camera info message associated to the image
         """
+        rospy.logwarn("Imagefeat_callback has been called")
+        
+        #timeout = rospy.Duration(20)
+        #start_time = rospy.Time.now()
         if not self._setup_ready:
+            rospy.logwarn("Setup was not ready when imagefeat_callback was called.")
             return
+
+        #while not self._setup_ready:
+        #    if rospy.Time.now() - start_time > timeout:
+        #        rospy.logwarn("Setup was not ready within the timeout period")
+        #        return
+        #    rospy.logwarn("Waiting for setup to be ready.")
+        #    rospy.sleep(0.5)
 
         if self._ros_params.mode == WVNMode.DEBUG:
             assert len(args) == 4
@@ -642,10 +673,11 @@ class WvnLearning:
                 abs(ts - self._last_image_ts)
                 < 1.0 / self._ros_params.image_callback_rate
             ):
+                rospy.logwarn("Imagefeat callback does not match the desired rate")
                 return
             self._last_image_ts = ts
 
-            # Query transforms from TF
+            # Query transforms from TF3
             success, pose_base_in_world = rc.ros_tf_to_torch(
                 self.query_tf(
                     self._ros_params.fixed_frame,
@@ -659,12 +691,14 @@ class WvnLearning:
                     "time": time_func(),
                     "value": "canceled due to pose_base_in_world",
                 }
+                rospy.logwarn("Imagefeat callback cancelled because of the pose base in world")
                 return
 
             success, pose_cam_in_base = rc.ros_tf_to_torch(
                 self.query_tf(
                     self._ros_params.base_frame,
-                    imagefeat_msg.header.frame_id,
+                    "oak_front_frame",
+                    #imagefeat_msg.header.frame_id,
                     imagefeat_msg.header.stamp,
                 ),
                 device=self._ros_params.device,
@@ -674,6 +708,7 @@ class WvnLearning:
                     "time": time_func(),
                     "value": "canceled due to pose_cam_in_base",
                 }
+                rospy.logwarn("Imagefeat callback cancelled because of the pose cam in base")
                 return
 
             # Prepare image projector
@@ -723,6 +758,7 @@ class WvnLearning:
             mission_node.feature_segments = feature_segments[0]
 
             # Add node to graph
+            rospy.logwarn("Adding node to mission graph.")
             added_new_node = self._traversability_estimator.add_mission_node(
                 mission_node
             )
@@ -1031,11 +1067,10 @@ class WvnLearning:
             )
             rot /= np.linalg.norm(rot)
             return (trans, tuple(rot))
-        except Exception:
+        except Exception as e:
             if self._ros_params.verbose:
-                # print("Error in query tf: ", e)
                 rospy.logwarn(
-                    f"[{self._node_name}] Couldn't get between {parent_frame} and {child_frame}"
+                    f"[{self._node_name}] Couldn't get between {parent_frame} and {child_frame}: {e}"
                 )
             return (None, None)
 

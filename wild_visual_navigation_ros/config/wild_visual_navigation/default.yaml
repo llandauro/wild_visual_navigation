@@ -4,8 +4,8 @@ desired_twist_topic: "/motion_reference/command_twist"
 
 # Relevant frames
 fixed_frame: odom
-base_frame: base
-footprint_frame: footprint
+base_frame: base_link
+footprint_frame: base_link
 
 # Robot size used to project the footprint
 robot_length: 0.8
